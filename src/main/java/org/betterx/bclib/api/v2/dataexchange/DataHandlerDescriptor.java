@@ -168,7 +168,7 @@ public class DataHandlerDescriptor<
         BaseDataHandler<T> h = this.INSTANCE.get();
         //noinspection unchecked
         h.receiveFromClient(
-            context.player().getServer(),
+            context.server(),
             context.player(),
             context.player().connection,
             (T) payload,

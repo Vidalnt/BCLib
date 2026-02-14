@@ -330,7 +330,7 @@ public class DebugDataItem
 
                     tag.putString(
                         RandomizableContainerBlockEntity.LOOT_TABLE_TAG,
-                        table.location().toString()
+                        table.identifier().toString()
                     );
 
                     entity.loadCustomOnly(

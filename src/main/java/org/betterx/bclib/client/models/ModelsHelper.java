@@ -59,7 +59,7 @@ public class ModelsHelper {
     ) {
         Variant variant = new Variant(
             resourceLocation,
-            new Variant.SimpleModelState(rotX, rotY, uvLock)
+            new Variant.SimpleModelState(rotX, rotY, Quadrant.R0, uvLock)
         );
         return new MultiVariant(
             WeightedList.<Variant>builder().add(variant).build()
@@ -139,6 +139,7 @@ public class ModelsHelper {
                         new Variant.SimpleModelState(
                             Quadrant.R0,
                             Quadrant.R0,
+                            Quadrant.R0,
                             false
                         )
                     ),
@@ -150,6 +151,7 @@ public class ModelsHelper {
                         new Variant.SimpleModelState(
                             Quadrant.R0,
                             Quadrant.R90,
+                            Quadrant.R0,
                             false
                         )
                     ),
@@ -161,6 +163,7 @@ public class ModelsHelper {
                         new Variant.SimpleModelState(
                             Quadrant.R0,
                             Quadrant.R180,
+                            Quadrant.R0,
                             false
                         )
                     ),
@@ -172,6 +175,7 @@ public class ModelsHelper {
                         new Variant.SimpleModelState(
                             Quadrant.R0,
                             Quadrant.R270,
+                            Quadrant.R0,
                             false
                         )
                     ),

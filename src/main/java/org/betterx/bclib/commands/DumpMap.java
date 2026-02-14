@@ -1,11 +1,16 @@
 package org.betterx.bclib.commands;
 
-import org.betterx.bclib.BCLib;
-import org.betterx.wover.state.api.WorldState;
-
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -18,42 +23,38 @@ import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import org.betterx.bclib.BCLib;
+import org.betterx.wover.state.api.WorldState;
 
 public class DumpMap {
+
     //serverLevel.getChunkSource().randomState()
 
-    public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> bnContext) {
-        return bnContext
-                .then(Commands.literal("dump_maps")
-                              .requires(source -> source.hasPermission(Commands.LEVEL_OWNERS))
-                              .then(Commands.literal("png").executes(DumpMap::dumpImageMaps))
-                              .then(Commands.literal("json").executes(DumpMap::dumpJsonMaps))
-                );
+    public static LiteralArgumentBuilder<CommandSourceStack> register(
+        LiteralArgumentBuilder<CommandSourceStack> bnContext
+    ) {
+        return bnContext.then(
+            Commands.literal("dump_maps")
+                .requires(source -> source.hasPermission(Commands.LEVEL_OWNERS))
+                .then(Commands.literal("png").executes(DumpMap::dumpImageMaps))
+                .then(Commands.literal("json").executes(DumpMap::dumpJsonMaps))
+        );
     }
 
     static int dumpJsonMaps(CommandContext<CommandSourceStack> ctx) {
         final CommandSourceStack source = ctx.getSource();
         final ServerLevel serverLevel = source.getLevel();
         final Vec3 pos = source.getPosition();
-        final var basePath = WorldState
-                .storageAccess()
-                .getLevelPath(LevelResource.ROOT)
-                .resolve(BCLib.C.namespace)
-                .resolve("export")
-                .resolve(serverLevel.dimension().location().getPath())
-                .normalize();
+        final var basePath = WorldState.storageAccess()
+            .getLevelPath(LevelResource.ROOT)
+            .resolve(BCLib.C.namespace)
+            .resolve("export")
+            .resolve(serverLevel.dimension().identifier().getPath())
+            .normalize();
 
-        final RandomState randomState = serverLevel.getChunkSource().randomState();
+        final RandomState randomState = serverLevel
+            .getChunkSource()
+            .randomState();
         final Climate.Sampler sampler = randomState.sampler();
         int x = QuartPos.fromBlock((int) pos.x);
         int z = QuartPos.fromBlock((int) pos.z);
@@ -61,9 +62,9 @@ public class DumpMap {
         int maxHeight = QuartPos.fromBlock(serverLevel.getMaxY());
         int maxOffset = 128;
 
-        MutableComponent result = Component
-                .literal("Wrote maps to " + basePath.toString() + ":\n")
-                .setStyle(Style.EMPTY.withBold(true).withColor(ChatFormatting.BLUE));
+        MutableComponent result = Component.literal(
+            "Wrote maps to " + basePath.toString() + ":\n"
+        ).setStyle(Style.EMPTY.withBold(true).withColor(ChatFormatting.BLUE));
 
         JsonObject root = new JsonObject();
         JsonObject header = new JsonObject();
@@ -85,7 +86,10 @@ public class DumpMap {
         header.add("center", center);
         header.add("start", start);
         header.add("size", dimensions);
-        header.addProperty("dimension", serverLevel.dimension().location().toString());
+        header.addProperty(
+            "dimension",
+            serverLevel.dimension().identifier().toString()
+        );
 
         root.add("info", header);
 
@@ -110,7 +114,11 @@ public class DumpMap {
                 JsonArray samplesY = new JsonArray();
                 for (int y = minHeight; y <= maxHeight; y++) {
                     JsonArray samples = new JsonArray();
-                    final Climate.TargetPoint t = sampler.sample(x + ox, y, z + oz);
+                    final Climate.TargetPoint t = sampler.sample(
+                        x + ox,
+                        y,
+                        z + oz
+                    );
                     samples.add(t.temperature());
                     samples.add(t.humidity());
                     samples.add(t.continentalness());
@@ -119,19 +127,27 @@ public class DumpMap {
                     samples.add(t.weirdness());
                     samplesY.add(samples);
 
-                    if (t.temperature() < minTemperature) minTemperature = t.temperature();
+                    if (t.temperature() < minTemperature) minTemperature =
+                        t.temperature();
                     if (t.humidity() < minHumidity) minHumidity = t.humidity();
-                    if (t.continentalness() < minContinentalness) minContinentalness = t.continentalness();
+                    if (
+                        t.continentalness() < minContinentalness
+                    ) minContinentalness = t.continentalness();
                     if (t.erosion() < minErosion) minErosion = t.erosion();
                     if (t.depth() < minDepth) minDepth = t.depth();
-                    if (t.weirdness() < minWeirdness) minWeirdness = t.weirdness();
+                    if (t.weirdness() < minWeirdness) minWeirdness =
+                        t.weirdness();
 
-                    if (t.temperature() > maxTemperature) maxTemperature = t.temperature();
+                    if (t.temperature() > maxTemperature) maxTemperature =
+                        t.temperature();
                     if (t.humidity() > maxHumidity) maxHumidity = t.humidity();
-                    if (t.continentalness() > maxContinentalness) maxContinentalness = t.continentalness();
+                    if (
+                        t.continentalness() > maxContinentalness
+                    ) maxContinentalness = t.continentalness();
                     if (t.erosion() > maxErosion) maxErosion = t.erosion();
                     if (t.depth() > maxDepth) maxDepth = t.depth();
-                    if (t.weirdness() > maxWeirdness) maxWeirdness = t.weirdness();
+                    if (t.weirdness() > maxWeirdness) maxWeirdness =
+                        t.weirdness();
                 }
                 samplesZ.add(samplesY);
             }
@@ -141,7 +157,12 @@ public class DumpMap {
         JsonObject extrema = new JsonObject();
         setExtrema("temperature", minTemperature, maxTemperature, extrema);
         setExtrema("humidity", minHumidity, maxHumidity, extrema);
-        setExtrema("continentalness", minContinentalness, maxContinentalness, extrema);
+        setExtrema(
+            "continentalness",
+            minContinentalness,
+            maxContinentalness,
+            extrema
+        );
         setExtrema("erosion", minErosion, maxErosion, extrema);
         setExtrema("depth", minDepth, maxDepth, extrema);
         setExtrema("weirdness", minWeirdness, maxWeirdness, extrema);
@@ -157,14 +178,23 @@ public class DumpMap {
             java.nio.file.Files.writeString(fJson.toPath(), s);
         } catch (Exception e) {
             BCLib.C.LOG.error("Error while saving json: " + e.getMessage());
-            result.append(Component.literal("Error while saving json: " + fJson.toString()));
+            result.append(
+                Component.literal(
+                    "Error while saving json: " + fJson.toString()
+                )
+            );
         }
 
         ctx.getSource().sendSuccess(() -> result, false);
         return Command.SINGLE_SUCCESS;
     }
 
-    private static void setExtrema(String property, long minTemperature, long maxTemperature, JsonObject root) {
+    private static void setExtrema(
+        String property,
+        long minTemperature,
+        long maxTemperature,
+        JsonObject root
+    ) {
         JsonObject jTemperature = new JsonObject();
         jTemperature.addProperty("min", minTemperature);
         jTemperature.addProperty("max", maxTemperature);
@@ -175,25 +205,25 @@ public class DumpMap {
         final CommandSourceStack source = ctx.getSource();
         final ServerLevel serverLevel = source.getLevel();
         final Vec3 pos = source.getPosition();
-        final var basePath = WorldState
-                .storageAccess()
-                .getLevelPath(LevelResource.ROOT)
-                .resolve(BCLib.C.namespace)
-                .resolve("export")
-                .resolve(serverLevel.dimension().location().getPath())
-                .normalize();
+        final var basePath = WorldState.storageAccess()
+            .getLevelPath(LevelResource.ROOT)
+            .resolve(BCLib.C.namespace)
+            .resolve("export")
+            .resolve(serverLevel.dimension().identifier().getPath())
+            .normalize();
 
-        final RandomState randomState = serverLevel.getChunkSource().randomState();
+        final RandomState randomState = serverLevel
+            .getChunkSource()
+            .randomState();
         final Climate.Sampler sampler = randomState.sampler();
         int x = QuartPos.fromBlock((int) pos.x);
         int y = QuartPos.fromBlock((int) pos.y);
         int z = QuartPos.fromBlock((int) pos.z);
         int maxOffset = 128;
 
-        MutableComponent result = Component
-                .literal("Wrote maps to " + basePath.toString() + ":\n")
-                .setStyle(Style.EMPTY.withBold(true).withColor(ChatFormatting.BLUE));
-
+        MutableComponent result = Component.literal(
+            "Wrote maps to " + basePath.toString() + ":\n"
+        ).setStyle(Style.EMPTY.withBold(true).withColor(ChatFormatting.BLUE));
 
         //find extrema
         long minTemperature = Long.MAX_VALUE;
@@ -210,23 +240,30 @@ public class DumpMap {
         long maxDepth = Long.MIN_VALUE;
         long maxWeirdness = Long.MIN_VALUE;
 
-        for (int ox = -maxOffset; ox <= maxOffset; ox++)
-            for (int oz = -maxOffset; oz <= maxOffset; oz++) {
-                final Climate.TargetPoint t = sampler.sample(x + ox, y, z + oz);
-                if (t.temperature() < minTemperature) minTemperature = t.temperature();
-                if (t.humidity() < minHumidity) minHumidity = t.humidity();
-                if (t.continentalness() < minContinentalness) minContinentalness = t.continentalness();
-                if (t.erosion() < minErosion) minErosion = t.erosion();
-                if (t.depth() < minDepth) minDepth = t.depth();
-                if (t.weirdness() < minWeirdness) minWeirdness = t.weirdness();
+        for (int ox = -maxOffset; ox <= maxOffset; ox++) for (
+            int oz = -maxOffset;
+            oz <= maxOffset;
+            oz++
+        ) {
+            final Climate.TargetPoint t = sampler.sample(x + ox, y, z + oz);
+            if (t.temperature() < minTemperature) minTemperature =
+                t.temperature();
+            if (t.humidity() < minHumidity) minHumidity = t.humidity();
+            if (t.continentalness() < minContinentalness) minContinentalness =
+                t.continentalness();
+            if (t.erosion() < minErosion) minErosion = t.erosion();
+            if (t.depth() < minDepth) minDepth = t.depth();
+            if (t.weirdness() < minWeirdness) minWeirdness = t.weirdness();
 
-                if (t.temperature() > maxTemperature) maxTemperature = t.temperature();
-                if (t.humidity() > maxHumidity) maxHumidity = t.humidity();
-                if (t.continentalness() > maxContinentalness) maxContinentalness = t.continentalness();
-                if (t.erosion() > maxErosion) maxErosion = t.erosion();
-                if (t.depth() > maxDepth) maxDepth = t.depth();
-                if (t.weirdness() > maxWeirdness) maxWeirdness = t.weirdness();
-            }
+            if (t.temperature() > maxTemperature) maxTemperature =
+                t.temperature();
+            if (t.humidity() > maxHumidity) maxHumidity = t.humidity();
+            if (t.continentalness() > maxContinentalness) maxContinentalness =
+                t.continentalness();
+            if (t.erosion() > maxErosion) maxErosion = t.erosion();
+            if (t.depth() > maxDepth) maxDepth = t.depth();
+            if (t.weirdness() > maxWeirdness) maxWeirdness = t.weirdness();
+        }
         if (minTemperature == maxTemperature) maxTemperature++;
         if (minHumidity == maxHumidity) maxHumidity++;
         if (minContinentalness == maxContinentalness) maxContinentalness++;
@@ -241,95 +278,205 @@ public class DumpMap {
         //write the pixel to the image
 
         BufferedImage iTemperature = new BufferedImage(
-                2 * maxOffset + 1,
-                2 * maxOffset + 1,
-                BufferedImage.TYPE_BYTE_GRAY
+            2 * maxOffset + 1,
+            2 * maxOffset + 1,
+            BufferedImage.TYPE_BYTE_GRAY
         );
-        BufferedImage iHumidity = new BufferedImage(2 * maxOffset + 1, 2 * maxOffset + 1, BufferedImage.TYPE_BYTE_GRAY);
+        BufferedImage iHumidity = new BufferedImage(
+            2 * maxOffset + 1,
+            2 * maxOffset + 1,
+            BufferedImage.TYPE_BYTE_GRAY
+        );
         BufferedImage iContinentalness = new BufferedImage(
-                2 * maxOffset + 1,
-                2 * maxOffset + 1,
-                BufferedImage.TYPE_BYTE_GRAY
+            2 * maxOffset + 1,
+            2 * maxOffset + 1,
+            BufferedImage.TYPE_BYTE_GRAY
         );
-        BufferedImage iErosion = new BufferedImage(2 * maxOffset + 1, 2 * maxOffset + 1, BufferedImage.TYPE_BYTE_GRAY);
-        BufferedImage iDepth = new BufferedImage(2 * maxOffset + 1, 2 * maxOffset + 1, BufferedImage.TYPE_BYTE_GRAY);
+        BufferedImage iErosion = new BufferedImage(
+            2 * maxOffset + 1,
+            2 * maxOffset + 1,
+            BufferedImage.TYPE_BYTE_GRAY
+        );
+        BufferedImage iDepth = new BufferedImage(
+            2 * maxOffset + 1,
+            2 * maxOffset + 1,
+            BufferedImage.TYPE_BYTE_GRAY
+        );
         BufferedImage iWeirdness = new BufferedImage(
-                2 * maxOffset + 1,
-                2 * maxOffset + 1,
-                BufferedImage.TYPE_BYTE_GRAY
+            2 * maxOffset + 1,
+            2 * maxOffset + 1,
+            BufferedImage.TYPE_BYTE_GRAY
         );
 
-        for (int ox = -maxOffset; ox <= maxOffset; ox++)
-            for (int oz = -maxOffset; oz <= maxOffset; oz++) {
-                final Climate.TargetPoint t = sampler.sample(x + ox, y, z + oz);
-                final int temperature = (int) ((t.temperature() - minTemperature) * 255 / (maxTemperature - minTemperature));
-                final int humidity = (int) ((t.humidity() - minHumidity) * 255 / (maxHumidity - minHumidity));
-                final int continentalness = (int) ((t.continentalness() - minContinentalness) * 255 / (maxContinentalness - minContinentalness));
-                final int erosion = (int) ((t.erosion() - minErosion) * 255 / (maxErosion - minErosion));
-                final int depth = (int) ((t.depth() - minDepth) * 255 / (maxDepth - minDepth));
-                final int weirdness = (int) ((t.weirdness() - minWeirdness) * 255 / (maxWeirdness - minWeirdness));
+        for (int ox = -maxOffset; ox <= maxOffset; ox++) for (
+            int oz = -maxOffset;
+            oz <= maxOffset;
+            oz++
+        ) {
+            final Climate.TargetPoint t = sampler.sample(x + ox, y, z + oz);
+            final int temperature = (int) (((t.temperature() - minTemperature) *
+                    255) /
+                (maxTemperature - minTemperature));
+            final int humidity = (int) (((t.humidity() - minHumidity) * 255) /
+                (maxHumidity - minHumidity));
+            final int continentalness = (int) (((t.continentalness() -
+                        minContinentalness) *
+                    255) /
+                (maxContinentalness - minContinentalness));
+            final int erosion = (int) (((t.erosion() - minErosion) * 255) /
+                (maxErosion - minErosion));
+            final int depth = (int) (((t.depth() - minDepth) * 255) /
+                (maxDepth - minDepth));
+            final int weirdness = (int) (((t.weirdness() - minWeirdness) *
+                    255) /
+                (maxWeirdness - minWeirdness));
 
-                iTemperature.setRGB(
-                        ox + maxOffset,
-                        oz + maxOffset,
-                        new Color(temperature, temperature, temperature).getRGB()
-                );
-                iHumidity.setRGB(ox + maxOffset, oz + maxOffset, new Color(humidity, humidity, humidity).getRGB());
-                iContinentalness.setRGB(
-                        ox + maxOffset,
-                        oz + maxOffset,
-                        new Color(continentalness, continentalness, continentalness).getRGB()
-                );
-                iErosion.setRGB(ox + maxOffset, oz + maxOffset, new Color(erosion, erosion, erosion).getRGB());
-                iDepth.setRGB(ox + maxOffset, oz + maxOffset, new Color(depth, depth, depth).getRGB());
-                iWeirdness.setRGB(ox + maxOffset, oz + maxOffset, new Color(weirdness, weirdness, weirdness).getRGB());
-            }
+            iTemperature.setRGB(
+                ox + maxOffset,
+                oz + maxOffset,
+                new Color(temperature, temperature, temperature).getRGB()
+            );
+            iHumidity.setRGB(
+                ox + maxOffset,
+                oz + maxOffset,
+                new Color(humidity, humidity, humidity).getRGB()
+            );
+            iContinentalness.setRGB(
+                ox + maxOffset,
+                oz + maxOffset,
+                new Color(
+                    continentalness,
+                    continentalness,
+                    continentalness
+                ).getRGB()
+            );
+            iErosion.setRGB(
+                ox + maxOffset,
+                oz + maxOffset,
+                new Color(erosion, erosion, erosion).getRGB()
+            );
+            iDepth.setRGB(
+                ox + maxOffset,
+                oz + maxOffset,
+                new Color(depth, depth, depth).getRGB()
+            );
+            iWeirdness.setRGB(
+                ox + maxOffset,
+                oz + maxOffset,
+                new Color(weirdness, weirdness, weirdness).getRGB()
+            );
+        }
 
         // Save the image to a file
         //create the basePath if it is missing
         File fBasePath = basePath.toFile();
         if (!fBasePath.exists()) {
             if (!fBasePath.mkdirs()) {
-                BCLib.C.LOG.error("Error while creating directory: " + fBasePath.toString());
+                BCLib.C.LOG.error(
+                    "Error while creating directory: " + fBasePath.toString()
+                );
                 //append error to the result output
-                result.append(Component.literal("Error while creating directory: " + fBasePath.toString()));
+                result.append(
+                    Component.literal(
+                        "Error while creating directory: " +
+                            fBasePath.toString()
+                    )
+                );
                 return Command.SINGLE_SUCCESS;
             }
         }
 
         write(
-                iTemperature,
-                new File(basePath.toString() + "/temperature_" + minTemperature + "_" + maxTemperature + ".png"),
-                result
+            iTemperature,
+            new File(
+                basePath.toString() +
+                    "/temperature_" +
+                    minTemperature +
+                    "_" +
+                    maxTemperature +
+                    ".png"
+            ),
+            result
         );
         write(
-                iHumidity,
-                new File(basePath.toString() + "/humidity_" + minHumidity + "_" + maxHumidity + ".png"),
-                result
+            iHumidity,
+            new File(
+                basePath.toString() +
+                    "/humidity_" +
+                    minHumidity +
+                    "_" +
+                    maxHumidity +
+                    ".png"
+            ),
+            result
         );
         write(
-                iContinentalness,
-                new File(basePath.toString() + "/continentalness_" + minContinentalness + "_" + maxContinentalness + ".png"),
-                result
+            iContinentalness,
+            new File(
+                basePath.toString() +
+                    "/continentalness_" +
+                    minContinentalness +
+                    "_" +
+                    maxContinentalness +
+                    ".png"
+            ),
+            result
         );
-        write(iErosion, new File(basePath.toString() + "/erosion_" + minErosion + "_" + maxErosion + ".png"), result);
-        write(iDepth, new File(basePath.toString() + "/depth_" + minDepth + "_" + maxDepth + ".png"), result);
         write(
-                iWeirdness,
-                new File(basePath.toString() + "/weirdness_" + minWeirdness + "_" + maxWeirdness + ".png"),
-                result
+            iErosion,
+            new File(
+                basePath.toString() +
+                    "/erosion_" +
+                    minErosion +
+                    "_" +
+                    maxErosion +
+                    ".png"
+            ),
+            result
+        );
+        write(
+            iDepth,
+            new File(
+                basePath.toString() +
+                    "/depth_" +
+                    minDepth +
+                    "_" +
+                    maxDepth +
+                    ".png"
+            ),
+            result
+        );
+        write(
+            iWeirdness,
+            new File(
+                basePath.toString() +
+                    "/weirdness_" +
+                    minWeirdness +
+                    "_" +
+                    maxWeirdness +
+                    ".png"
+            ),
+            result
         );
 
         ctx.getSource().sendSuccess(() -> result, false);
         return Command.SINGLE_SUCCESS;
     }
 
-    private static void write(BufferedImage iTemperature, File fTemperature, MutableComponent result) {
+    private static void write(
+        BufferedImage iTemperature,
+        File fTemperature,
+        MutableComponent result
+    ) {
         try {
             ImageIO.write(iTemperature, "png", fTemperature);
         } catch (IOException e) {
             BCLib.C.LOG.error("Error while saving image: " + e.getMessage());
-            result.append(Component.literal("Error while saving image: " + fTemperature.toString()));
+            result.append(
+                Component.literal(
+                    "Error while saving image: " + fTemperature.toString()
+                )
+            );
         }
     }
 }

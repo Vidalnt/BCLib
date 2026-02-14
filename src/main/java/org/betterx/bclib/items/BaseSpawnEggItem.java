@@ -22,7 +22,7 @@ public class BaseSpawnEggItem
         EntityType<? extends Mob> type,
         Properties settings
     ) {
-        super(type, settings);
+        super(settings);
     }
 
     /**

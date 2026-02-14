@@ -77,7 +77,7 @@ public class BaseTerrainBlock
                 1.0F,
                 1.0F
             );
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
                 level.setBlockAndUpdate(pos, pathBlock.defaultBlockState());
                 if (!player.isCreative()) {
                     player

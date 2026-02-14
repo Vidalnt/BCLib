@@ -9,6 +9,8 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.screens.inventory.AnvilScreen;
 import net.minecraft.client.gui.screens.inventory.ItemCombinerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -137,7 +139,13 @@ public class AnvilScreenMixin extends ItemCombinerScreen<AnvilMenu> {
     public boolean bcl$mouseClicked(double mouseX, double mouseY, int button) {
         if (minecraft != null) {
             for (AbstractWidget elem : bcl_buttons) {
-                if (elem.visible && elem.mouseClicked(mouseX, mouseY, button)) {
+                MouseButtonInfo buttonInfo = new MouseButtonInfo(button, 0);
+                MouseButtonEvent event = new MouseButtonEvent(
+                    mouseX,
+                    mouseY,
+                    buttonInfo
+                );
+                if (elem.visible && elem.mouseClicked(event, false)) {
                     if (minecraft.gameMode != null) {
                         int i = bcl_buttons.indexOf(elem);
                         minecraft.gameMode.handleInventoryButtonClick(
@@ -149,6 +157,12 @@ public class AnvilScreenMixin extends ItemCombinerScreen<AnvilMenu> {
                 }
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        MouseButtonInfo buttonInfo = new MouseButtonInfo(button, 0);
+        MouseButtonEvent event = new MouseButtonEvent(
+            mouseX,
+            mouseY,
+            buttonInfo
+        );
+        return super.mouseClicked(event, false);
     }
 }

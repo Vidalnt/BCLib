@@ -108,7 +108,7 @@ public abstract class BCLBaseRecipeBuilder<
 
     protected Identifier createAdvancementId() {
         return key
-            .location()
+            .identifier()
             .withPrefix("recipes/" + category.getFolderName() + "/");
     }
 

@@ -1,8 +1,6 @@
 package org.betterx.bclib.furniture.entity;
 
-import org.betterx.bclib.BCLib;
-import org.betterx.bclib.furniture.block.AbstractChair;
-
+import java.util.List;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -14,17 +12,18 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.animal.WaterAnimal;
+import net.minecraft.world.entity.animal.fish.WaterAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
-
-import java.util.List;
+import org.betterx.bclib.BCLib;
+import org.betterx.bclib.furniture.block.AbstractChair;
 import org.jetbrains.annotations.Nullable;
 
 public class EntityChair extends Entity {
+
     public EntityChair(EntityType<? extends EntityChair> type, Level world) {
         super(type, world);
     }
@@ -34,14 +33,16 @@ public class EntityChair extends Entity {
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-
-    }
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {}
 
     @Override
     public void tick() {
-        if (this.level().getBlockState(this.blockPosition()).getBlock() instanceof AbstractChair)
-            localTick();
+        if (
+            this.level()
+                    .getBlockState(this.blockPosition())
+                    .getBlock() instanceof
+                AbstractChair
+        ) localTick();
         else {
             BCLib.LOGGER.info("Chair Block was deleted -> ejecting");
             this.ejectPassengers();
@@ -52,23 +53,27 @@ public class EntityChair extends Entity {
     protected void localTick() {
         super.tick();
         List<Entity> pushableEntities = this.level().getEntities(
-                this,
-                this.getBoundingBox().inflate(0.7f, -0.01f, 0.7f),
-                EntitySelector.pushableBy(this)
+            this,
+            this.getBoundingBox().inflate(0.7f, -0.01f, 0.7f),
+            EntitySelector.pushableBy(this)
         );
 
         if (!pushableEntities.isEmpty()) {
-            boolean free = !this.level().isClientSide && !(this.getControllingPassenger() instanceof Player);
+            boolean free =
+                !this.level().isClientSide() &&
+                !(this.getControllingPassenger() instanceof Player);
             for (int j = 0; j < pushableEntities.size(); ++j) {
                 Entity entity = pushableEntities.get(j);
                 if (entity.hasPassenger(this)) continue;
-                if (free
-                        && this.getPassengers().size() < this.getMaxPassengers()
-                        && !entity.isPassenger()
-                        //&& entity.getBbWidth() < this.getBbWidth()
-                        && entity instanceof LivingEntity
-                        && !(entity instanceof WaterAnimal)
-                        && !(entity instanceof Player)
+                if (
+                    free &&
+                    this.getPassengers().size() < this.getMaxPassengers() &&
+                    !entity.isPassenger() &&
+                    //&& entity.getBbWidth() < this.getBbWidth()
+                        entity instanceof
+                        LivingEntity &&
+                    !(entity instanceof WaterAnimal) &&
+                    !(entity instanceof Player)
                 ) {
                     entity.startRiding(this);
                     continue;
@@ -79,14 +84,10 @@ public class EntityChair extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(ValueInput valueInput) {
-
-    }
+    protected void readAdditionalSaveData(ValueInput valueInput) {}
 
     @Override
-    protected void addAdditionalSaveData(ValueOutput valueOutput) {
-
-    }
+    protected void addAdditionalSaveData(ValueOutput valueOutput) {}
 
     @Override
     public boolean isAlive() {
@@ -94,7 +95,9 @@ public class EntityChair extends Entity {
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket(ServerEntity serverEntity) {
+    public Packet<ClientGamePacketListener> getAddEntityPacket(
+        ServerEntity serverEntity
+    ) {
         return new ClientboundAddEntityPacket(this, serverEntity);
     }
 
@@ -118,24 +121,36 @@ public class EntityChair extends Entity {
     }
 
     @Override
-    public boolean hurtServer(ServerLevel serverLevel, DamageSource damageSource, float f) {
+    public boolean hurtServer(
+        ServerLevel serverLevel,
+        DamageSource damageSource,
+        float f
+    ) {
         return false;
     }
 
-
     @Override
-    protected Vec3 getPassengerAttachmentPoint(Entity entity, EntityDimensions entityDimensions, float f) {
+    protected Vec3 getPassengerAttachmentPoint(
+        Entity entity,
+        EntityDimensions entityDimensions,
+        float f
+    ) {
         return Vec3.ZERO;
     }
 
     @Override
-    public InteractionResult interact(Player player, InteractionHand interactionHand) {
+    public InteractionResult interact(
+        Player player,
+        InteractionHand interactionHand
+    ) {
         if (player.isSecondaryUseActive()) {
             return InteractionResult.PASS;
         }
 
-        if (!this.level().isClientSide) {
-            return player.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
+        if (!this.level().isClientSide()) {
+            return player.startRiding(this)
+                ? InteractionResult.CONSUME
+                : InteractionResult.PASS;
         }
         return InteractionResult.SUCCESS;
     }

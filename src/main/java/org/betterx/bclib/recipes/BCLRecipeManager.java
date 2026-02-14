@@ -112,7 +112,9 @@ public class BCLRecipeManager {
         for (Identifier id : disabledRecipes) {
             BCLib.LOGGER.verbose("Disabling Recipe: {}", id);
 
-            recipeHolders.removeIf(holder -> holder.id().location().equals(id));
+            recipeHolders.removeIf(holder ->
+                holder.id().identifier().equals(id)
+            );
         }
 
         return RecipeMap.create(recipeHolders);

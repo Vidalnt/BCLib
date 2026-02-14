@@ -45,7 +45,7 @@ public interface BCLElytraItem {
     static void vanillaElytraTick(LivingEntity entity, ItemStack chestStack) {
         int nextRoll = entity.getFallFlyingTicks() + 1;
 
-        if (!entity.level().isClientSide && nextRoll % 10 == 0) {
+        if (!entity.level().isClientSide() && nextRoll % 10 == 0) {
             if ((nextRoll / 10) % 2 == 0) {
                 BCLElytraUtils.onBreak.accept(entity, chestStack);
                 return;

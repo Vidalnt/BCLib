@@ -81,7 +81,7 @@ public abstract class AbstractChair
         Player player,
         BlockHitResult hit
     ) {
-        if (world.isClientSide) {
+        if (world.isClientSide()) {
             return InteractionResult.FAIL;
         } else {
             if (
@@ -100,7 +100,7 @@ public abstract class AbstractChair
 
             if (entity != null) {
                 float yaw = state.getValue(FACING).getOpposite().toYRot();
-                player.startRiding(entity, true);
+                player.startRiding(entity, true, false);
                 player.setYBodyRot(yaw);
                 player.setYHeadRot(yaw);
                 return InteractionResult.SUCCESS;

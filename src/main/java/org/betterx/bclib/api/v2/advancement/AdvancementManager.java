@@ -414,7 +414,7 @@ public class AdvancementManager {
         public Builder addVisitBiomesCriterion(List<Holder<Biome>> list) {
             for (Holder<Biome> holder : list) {
                 addCriterion(
-                    holder.unwrapKey().orElseThrow().location().toString(),
+                    holder.unwrapKey().orElseThrow().identifier().toString(),
                     PlayerTrigger.TriggerInstance.located(
                         LocationPredicate.Builder.inBiome(holder)
                     )

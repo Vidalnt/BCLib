@@ -352,7 +352,7 @@ class PlaceCommandBuilder {
                 final Identifier key = entry
                     .unwrapKey()
                     .orElseThrow()
-                    .location();
+                    .identifier();
 
                 final Block block = entry.value();
 

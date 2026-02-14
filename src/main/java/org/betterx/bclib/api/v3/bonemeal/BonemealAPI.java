@@ -1,9 +1,7 @@
 package org.betterx.bclib.api.v3.bonemeal;
 
-import org.betterx.bclib.api.v3.tag.BCLBlockTags;
-import org.betterx.wover.feature.api.configured.ConfiguredFeatureKey;
-import org.betterx.wover.state.api.WorldState;
-
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
@@ -14,14 +12,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.betterx.bclib.api.v3.tag.BCLBlockTags;
+import org.betterx.wover.feature.api.configured.ConfiguredFeatureKey;
+import org.betterx.wover.state.api.WorldState;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BonemealAPI {
+
     @FunctionalInterface
     public interface FeatureProvider {
         @Nullable
@@ -36,9 +35,18 @@ public class BonemealAPI {
         taggedSpreaders = new HashMap<>();
         featureSpreaders = new HashMap<>();
 
-        addSpreadableBlocks(BCLBlockTags.BONEMEAL_TARGET_NETHERRACK, NetherrackSpreader.INSTANCE);
-        addSpreadableBlocks(BCLBlockTags.BONEMEAL_TARGET_END_STONE, EndStoneSpreader.INSTANCE);
-        addSpreadableBlocks(BCLBlockTags.BONEMEAL_TARGET_OBSIDIAN, BCLBlockTags.BONEMEAL_SOURCE_OBSIDIAN);
+        addSpreadableBlocks(
+            BCLBlockTags.BONEMEAL_TARGET_NETHERRACK,
+            NetherrackSpreader.INSTANCE
+        );
+        addSpreadableBlocks(
+            BCLBlockTags.BONEMEAL_TARGET_END_STONE,
+            EndStoneSpreader.INSTANCE
+        );
+        addSpreadableBlocks(
+            BCLBlockTags.BONEMEAL_TARGET_OBSIDIAN,
+            BCLBlockTags.BONEMEAL_SOURCE_OBSIDIAN
+        );
     }
 
     /**
@@ -48,10 +56,15 @@ public class BonemealAPI {
      * @param spreadableFeature the feature to place
      */
     public void addSpreadableFeatures(
-            Block target,
-            @NotNull ConfiguredFeatureKey<?> spreadableFeature
+        Block target,
+        @NotNull ConfiguredFeatureKey<?> spreadableFeature
     ) {
-        featureSpreaders.put(target, new FeatureSpreader(target, () -> spreadableFeature.getHolder(WorldState.allStageRegistryAccess())));
+        featureSpreaders.put(
+            target,
+            new FeatureSpreader(target, () ->
+                spreadableFeature.getHolder(WorldState.allStageRegistryAccess())
+            )
+        );
     }
 
     /**
@@ -68,10 +81,13 @@ public class BonemealAPI {
      * @param spreadableFeature the feature to place
      */
     public void addSpreadableFeatures(
-            Block target,
-            @NotNull FeatureProvider spreadableFeature
+        Block target,
+        @NotNull FeatureProvider spreadableFeature
     ) {
-        featureSpreaders.put(target, new FeatureSpreader(target, spreadableFeature));
+        featureSpreaders.put(
+            target,
+            new FeatureSpreader(target, spreadableFeature)
+        );
     }
 
     /**
@@ -88,8 +104,14 @@ public class BonemealAPI {
      * @param sourceTag Blocks with this Tag can replace the Target block if they are in a 3x3 Neighborhood
      *                  centered around the target Block.
      */
-    public void addSpreadableBlocks(@NotNull TagKey<Block> targetTag, @NotNull TagKey<Block> sourceTag) {
-        taggedSpreaders.put(targetTag, new TaggedBonemealBlockSpreader(sourceTag));
+    public void addSpreadableBlocks(
+        @NotNull TagKey<Block> targetTag,
+        @NotNull TagKey<Block> sourceTag
+    ) {
+        taggedSpreaders.put(
+            targetTag,
+            new TaggedBonemealBlockSpreader(sourceTag)
+        );
     }
 
     /**
@@ -100,7 +122,10 @@ public class BonemealAPI {
      * @param spreader  The {@link BonemealBlockSpreader}-Object that is called when a corresponding target-Block
      *                  is clicked with Bone-Meal
      */
-    public void addSpreadableBlocks(@NotNull TagKey<Block> targetTag, @NotNull BonemealBlockSpreader spreader) {
+    public void addSpreadableBlocks(
+        @NotNull TagKey<Block> targetTag,
+        @NotNull BonemealBlockSpreader spreader
+    ) {
         taggedSpreaders.put(targetTag, spreader);
     }
 
@@ -115,12 +140,15 @@ public class BonemealAPI {
      */
     @ApiStatus.Internal
     public BonemealBlockSpreader blockSpreaderForState(
-            BlockGetter blockGetter,
-            BlockPos pos,
-            @NotNull BlockState state
+        BlockGetter blockGetter,
+        BlockPos pos,
+        @NotNull BlockState state
     ) {
         for (var e : taggedSpreaders.entrySet()) {
-            if (state.is(e.getKey()) && e.getValue().canSpreadAt(blockGetter, pos)) {
+            if (
+                state.is(e.getKey()) &&
+                e.getValue().canSpreadAt(blockGetter, pos)
+            ) {
                 return e.getValue();
             }
         }
@@ -134,16 +162,38 @@ public class BonemealAPI {
     }
 
     @ApiStatus.Internal
-    public boolean runSpreaders(ItemStack itemStack, Level level, BlockPos blockPos, boolean forceBonemeal) {
+    public boolean runSpreaders(
+        ItemStack itemStack,
+        Level level,
+        BlockPos blockPos,
+        boolean forceBonemeal
+    ) {
         BlockState blockState = level.getBlockState(blockPos);
-        BonemealBlockSpreader spreader = org.betterx.bclib.api.v3.bonemeal.BonemealAPI
-                .INSTANCE
-                .blockSpreaderForState(level, blockPos, blockState);
+        BonemealBlockSpreader spreader =
+            org.betterx.bclib.api.v3.bonemeal.BonemealAPI.INSTANCE.blockSpreaderForState(
+                level,
+                blockPos,
+                blockState
+            );
 
         if (spreader != null) {
-            if (spreader.isValidBonemealSpreadTarget(level, blockPos, blockState, level.isClientSide)) {
+            if (
+                spreader.isValidBonemealSpreadTarget(
+                    level,
+                    blockPos,
+                    blockState,
+                    level.isClientSide()
+                )
+            ) {
                 if (level instanceof ServerLevel) {
-                    if (spreader.performBonemealSpread((ServerLevel) level, level.random, blockPos, blockState)) {
+                    if (
+                        spreader.performBonemealSpread(
+                            (ServerLevel) level,
+                            level.random,
+                            blockPos,
+                            blockState
+                        )
+                    ) {
                         itemStack.shrink(1);
                     }
                 }
@@ -151,15 +201,29 @@ public class BonemealAPI {
             }
         }
 
-        FeatureSpreader fSpreader = org.betterx.bclib.api.v3.bonemeal.BonemealAPI
-                .INSTANCE
-                .featureSpreaderForState(blockState);
+        FeatureSpreader fSpreader =
+            org.betterx.bclib.api.v3.bonemeal.BonemealAPI.INSTANCE.featureSpreaderForState(
+                blockState
+            );
 
         if (fSpreader != null) {
             if (fSpreader.isValidBonemealTarget(level, blockPos, blockState)) {
                 if (level instanceof ServerLevel) {
-                    if (forceBonemeal || fSpreader.isBonemealSuccess(level, level.random, blockPos, blockState)) {
-                        fSpreader.performBonemeal((ServerLevel) level, level.random, blockPos, blockState);
+                    if (
+                        forceBonemeal ||
+                        fSpreader.isBonemealSuccess(
+                            level,
+                            level.random,
+                            blockPos,
+                            blockState
+                        )
+                    ) {
+                        fSpreader.performBonemeal(
+                            (ServerLevel) level,
+                            level.random,
+                            blockPos,
+                            blockState
+                        );
                     }
                     itemStack.shrink(1);
                 }

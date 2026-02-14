@@ -21,7 +21,7 @@ public abstract class BaseChainBlock
 {
 
     public BaseChainBlock(MapColor color) {
-        this(Properties.ofFullCopy(Blocks.CHAIN).mapColor(color));
+        this(Properties.ofFullCopy(Blocks.IRON_CHAIN).mapColor(color));
     }
 
     public BaseChainBlock(BlockBehaviour.Properties properties) {

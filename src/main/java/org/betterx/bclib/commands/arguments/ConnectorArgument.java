@@ -36,7 +36,7 @@ public class ConnectorArgument extends IdentifierArgument {
         try {
             pool = context
                 .getArgument(PlaceCommand.POOL, ResourceKey.class)
-                .location();
+                .identifier();
         } catch (Throwable t) {
             pool = Identifier.fromNamespaceAndPath("-", "");
         }
