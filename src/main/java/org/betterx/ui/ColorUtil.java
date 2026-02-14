@@ -1,30 +1,27 @@
 package org.betterx.ui;
 
-import de.ambertation.wunderlib.ui.ColorHelper;
-import org.betterx.bclib.BCLib;
-import org.betterx.bclib.util.ColorExtractor;
-import org.betterx.bclib.util.MHelper;
-
-import com.mojang.blaze3d.platform.NativeImage;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.Mth;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import com.google.common.collect.Maps;
-
+import com.mojang.blaze3d.platform.NativeImage;
+import de.ambertation.wunderlib.ui.ColorHelper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import org.betterx.bclib.BCLib;
+import org.betterx.bclib.util.ColorExtractor;
+import org.betterx.bclib.util.MHelper;
 
 public class ColorUtil {
+
     public static final int BLACK = ColorHelper.BLACK;
     public static final int DARK_BLUE = ColorHelper.DARK_BLUE;
     public static final int DARK_GREEN = ColorHelper.DARK_GREEN;
@@ -57,14 +54,19 @@ public class ColorUtil {
     }
 
     public static int[] toIntArray(int color) {
-        return new int[]{(color >> 24) & 255, (color >> 16) & 255, (color >> 8) & 255, color & 255};
+        return new int[] {
+            (color >> 24) & 255,
+            (color >> 16) & 255,
+            (color >> 8) & 255,
+            color & 255,
+        };
     }
 
     public static float[] toFloatArray(int color) {
-        FLOAT_BUFFER[0] = ((color >> 16 & 255) / 255.0F);
-        FLOAT_BUFFER[1] = ((color >> 8 & 255) / 255.0F);
+        FLOAT_BUFFER[0] = (((color >> 16) & 255) / 255.0F);
+        FLOAT_BUFFER[1] = (((color >> 8) & 255) / 255.0F);
         FLOAT_BUFFER[2] = ((color & 255) / 255.0F);
-        FLOAT_BUFFER[3] = ((color >> 24 & 255) / 255.0F);
+        FLOAT_BUFFER[3] = (((color >> 24) & 255) / 255.0F);
 
         return FLOAT_BUFFER;
     }
@@ -100,7 +102,9 @@ public class ColorUtil {
     }
 
     public static int HSBtoRGB(float hue, float saturation, float brightness) {
-        int r = 0, g = 0, b = 0;
+        int r = 0,
+            g = 0,
+            b = 0;
         if (saturation == 0) {
             r = g = b = (int) (brightness * 255.0F + 0.5F);
         } else {
@@ -146,10 +150,12 @@ public class ColorUtil {
     }
 
     public static String toRGBHex(int color) {
-        return "#"
-                + Integer.toHexString((color >> 16) & 0xFF)
-                + Integer.toHexString((color >> 8) & 0xFF)
-                + Integer.toHexString(color & 0xFF);
+        return (
+            "#" +
+            Integer.toHexString((color >> 16) & 0xFF) +
+            Integer.toHexString((color >> 8) & 0xFF) +
+            Integer.toHexString(color & 0xFF)
+        );
     }
 
     public static boolean validHexColor(String hexColor) {
@@ -163,17 +169,26 @@ public class ColorUtil {
 
         int color, shift;
         if (len == 3) {
-            hexColor = ""
-                    + hexColor.charAt(0) + hexColor.charAt(0)
-                    + hexColor.charAt(1) + hexColor.charAt(1)
-                    + hexColor.charAt(2) + hexColor.charAt(2);
+            hexColor =
+                "" +
+                hexColor.charAt(0) +
+                hexColor.charAt(0) +
+                hexColor.charAt(1) +
+                hexColor.charAt(1) +
+                hexColor.charAt(2) +
+                hexColor.charAt(2);
             len = 6;
         } else if (len == 4) {
-            hexColor = ""
-                    + hexColor.charAt(0) + hexColor.charAt(0)
-                    + hexColor.charAt(1) + hexColor.charAt(1)
-                    + hexColor.charAt(2) + hexColor.charAt(2)
-                    + hexColor.charAt(3) + hexColor.charAt(3);
+            hexColor =
+                "" +
+                hexColor.charAt(0) +
+                hexColor.charAt(0) +
+                hexColor.charAt(1) +
+                hexColor.charAt(1) +
+                hexColor.charAt(2) +
+                hexColor.charAt(2) +
+                hexColor.charAt(3) +
+                hexColor.charAt(3);
             len = 8;
         }
 
@@ -208,17 +223,26 @@ public class ColorUtil {
 
         int color, shift;
         if (len == 3) {
-            hexColor = ""
-                    + hexColor.charAt(0) + hexColor.charAt(0)
-                    + hexColor.charAt(1) + hexColor.charAt(1)
-                    + hexColor.charAt(2) + hexColor.charAt(2);
+            hexColor =
+                "" +
+                hexColor.charAt(0) +
+                hexColor.charAt(0) +
+                hexColor.charAt(1) +
+                hexColor.charAt(1) +
+                hexColor.charAt(2) +
+                hexColor.charAt(2);
             len = 6;
         } else if (len == 4) {
-            hexColor = ""
-                    + hexColor.charAt(0) + hexColor.charAt(0)
-                    + hexColor.charAt(1) + hexColor.charAt(1)
-                    + hexColor.charAt(2) + hexColor.charAt(2)
-                    + hexColor.charAt(3) + hexColor.charAt(3);
+            hexColor =
+                "" +
+                hexColor.charAt(0) +
+                hexColor.charAt(0) +
+                hexColor.charAt(1) +
+                hexColor.charAt(1) +
+                hexColor.charAt(2) +
+                hexColor.charAt(2) +
+                hexColor.charAt(3) +
+                hexColor.charAt(3);
             len = 8;
         }
 
@@ -248,7 +272,7 @@ public class ColorUtil {
         int r = (color >> 16) & 255;
         int g = (color >> 8) & 255;
         int b = color & 255;
-        return 0xFF000000 | b << 16 | g << 8 | r;
+        return 0xFF000000 | (b << 16) | (g << 8) | r;
     }
 
     public static int ABGRtoARGB(int color) {
@@ -256,11 +280,16 @@ public class ColorUtil {
         int b = (color >> 16) & 255;
         int g = (color >> 8) & 255;
         int r = color & 255;
-        return a << 24 | r << 16 | g << 8 | b;
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
     public static int colorBrigtness(int color, float val) {
-        RGBtoHSB((color >> 16) & 255, (color >> 8) & 255, color & 255, FLOAT_BUFFER);
+        RGBtoHSB(
+            (color >> 16) & 255,
+            (color >> 8) & 255,
+            color & 255,
+            FLOAT_BUFFER
+        );
         FLOAT_BUFFER[2] += val / 10.0F;
         FLOAT_BUFFER[2] = Mth.clamp(FLOAT_BUFFER[2], 0.0F, 1.0F);
         return HSBtoRGB(FLOAT_BUFFER[0], FLOAT_BUFFER[1], FLOAT_BUFFER[2]);
@@ -273,10 +302,13 @@ public class ColorUtil {
             return color1;
         }
 
-        final int alpha = ((color1 >> 24) & 0xFF) * ((color2 >> 24) & 0xFF) / 0xFF;
-        final int red = ((color1 >> 16) & 0xFF) * ((color2 >> 16) & 0xFF) / 0xFF;
-        final int green = ((color1 >> 8) & 0xFF) * ((color2 >> 8) & 0xFF) / 0xFF;
-        final int blue = (color1 & 0xFF) * (color2 & 0xFF) / 0xFF;
+        final int alpha =
+            (((color1 >> 24) & 0xFF) * ((color2 >> 24) & 0xFF)) / 0xFF;
+        final int red =
+            (((color1 >> 16) & 0xFF) * ((color2 >> 16) & 0xFF)) / 0xFF;
+        final int green =
+            (((color1 >> 8) & 0xFF) * ((color2 >> 8) & 0xFF)) / 0xFF;
+        final int blue = ((color1 & 0xFF) * (color2 & 0xFF)) / 0xFF;
 
         return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
@@ -292,28 +324,31 @@ public class ColorUtil {
         int r2 = (color2 >> 16) & 255;
         int g2 = (color2 >> 8) & 255;
         int b2 = color2 & 255;
-        return MHelper.sqr(r1 - r2) + MHelper.sqr(g1 - g2) + MHelper.sqr(b1 - b2);
+        return (
+            MHelper.sqr(r1 - r2) + MHelper.sqr(g1 - g2) + MHelper.sqr(b1 - b2)
+        );
     }
 
-    private static final Map<ResourceLocation, Integer> colorPalette = Maps.newHashMap();
+    private static final Map<Identifier, Integer> colorPalette =
+        Maps.newHashMap();
 
     @Environment(EnvType.CLIENT)
     public static int extractColor(Item item) {
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+        Identifier id = BuiltInRegistries.ITEM.getKey(item);
         if (id.equals(BuiltInRegistries.ITEM.getDefaultKey())) return -1;
         if (colorPalette.containsKey(id)) {
             return colorPalette.get(id);
         }
-        ResourceLocation texture;
+        Identifier texture;
         if (item instanceof BlockItem) {
-            texture = ResourceLocation.fromNamespaceAndPath(
-                    id.getNamespace(),
-                    "textures/block/" + id.getPath() + ".png"
+            texture = Identifier.fromNamespaceAndPath(
+                id.getNamespace(),
+                "textures/block/" + id.getPath() + ".png"
             );
         } else {
-            texture = ResourceLocation.fromNamespaceAndPath(
-                    id.getNamespace(),
-                    "textures/item/" + id.getPath() + ".png"
+            texture = Identifier.fromNamespaceAndPath(
+                id.getNamespace(),
+                "textures/item/" + id.getPath() + ".png"
             );
         }
         NativeImage image = loadImage(texture, 16, 16);
@@ -338,7 +373,7 @@ public class ColorUtil {
     }
 
     @Environment(EnvType.CLIENT)
-    public static NativeImage loadImage(ResourceLocation image, int w, int h) {
+    public static NativeImage loadImage(Identifier image, int w, int h) {
         Minecraft minecraft = Minecraft.getInstance();
         ResourceManager resourceManager = minecraft.getResourceManager();
         var imgResource = resourceManager.getResource(image);
@@ -346,7 +381,10 @@ public class ColorUtil {
             try {
                 return NativeImage.read(imgResource.get().open());
             } catch (IOException e) {
-                BCLib.LOGGER.warn("Can't load texture image: {}. Will be created empty image.", image);
+                BCLib.LOGGER.warn(
+                    "Can't load texture image: {}. Will be created empty image.",
+                    image
+                );
                 BCLib.LOGGER.warn("Cause: {}.", e.getMessage());
             }
         }

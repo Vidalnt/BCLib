@@ -1,17 +1,13 @@
 package org.betterx.bclib.recipes;
 
-import org.betterx.bclib.util.BCLDataComponents;
-import org.betterx.wover.recipe.api.BaseRecipeBuilder;
-import org.betterx.wover.recipe.impl.BaseRecipeBuilderImpl;
-import org.betterx.wover.recipe.impl.CraftingRecipeBuilderImpl;
-
+import java.util.function.Consumer;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRequirements;
-import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -20,13 +16,18 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.level.ItemLike;
-
-import java.util.function.Consumer;
+import org.betterx.bclib.util.BCLDataComponents;
+import org.betterx.wover.recipe.api.BaseRecipeBuilder;
+import org.betterx.wover.recipe.impl.BaseRecipeBuilderImpl;
+import org.betterx.wover.recipe.impl.CraftingRecipeBuilderImpl;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class BCLBaseRecipeBuilder<I extends BaseRecipeBuilder<I>, R extends Recipe<? extends RecipeInput>> extends BaseRecipeBuilderImpl<I> {
-    public interface RecipeOutputConsumer extends Consumer<CompoundTag> {
-    }
+public abstract class BCLBaseRecipeBuilder<
+    I extends BaseRecipeBuilder<I>,
+    R extends Recipe<? extends RecipeInput>
+> extends BaseRecipeBuilderImpl<I> {
+
+    public interface RecipeOutputConsumer extends Consumer<CompoundTag> {}
 
     protected final Advancement.Builder advancement;
     protected CraftingRecipeBuilderImpl.IngredientFactory primaryInput;
@@ -36,14 +37,18 @@ public abstract class BCLBaseRecipeBuilder<I extends BaseRecipeBuilder<I>, R ext
     private final boolean dualInput;
 
     protected BCLBaseRecipeBuilder(
-            @NotNull ResourceLocation id,
-            @NotNull ItemLike output,
-            boolean dualInput
+        @NotNull Identifier id,
+        @NotNull ItemLike output,
+        boolean dualInput
     ) {
         this(id, new ItemStack(output, 1), dualInput);
     }
 
-    protected BCLBaseRecipeBuilder(@NotNull ResourceLocation id, @NotNull ItemStack output, boolean dualInput) {
+    protected BCLBaseRecipeBuilder(
+        @NotNull Identifier id,
+        @NotNull ItemStack output,
+        boolean dualInput
+    ) {
         super(id, output);
         this.advancement = Advancement.Builder.advancement();
         this.dualInput = dualInput;
@@ -55,12 +60,12 @@ public abstract class BCLBaseRecipeBuilder<I extends BaseRecipeBuilder<I>, R ext
         super.validate();
         if (primaryInput == null) {
             throwIllegalStateException(
-                    "Primary input for Recipe can't be 'null', recipe {} will be ignored!"
+                "Primary input for Recipe can't be 'null', recipe {} will be ignored!"
             );
         }
         if (secondaryInput == null && this.dualInput) {
             throwIllegalStateException(
-                    "Secondary input for Recipe can't be 'null', recipe {} will be ignored!"
+                "Secondary input for Recipe can't be 'null', recipe {} will be ignored!"
             );
         }
     }
@@ -70,28 +75,41 @@ public abstract class BCLBaseRecipeBuilder<I extends BaseRecipeBuilder<I>, R ext
         validate();
 
         setupAdvancementForResult();
-        final AdvancementHolder advancementHolder = advancement.build(createAdvancementId());
+        final AdvancementHolder advancementHolder = advancement.build(
+            createAdvancementId()
+        );
 
-        if (this.outputTagConsumer != null)
-            CustomData.update(BCLDataComponents.ANVIL_ENTITY_DATA, this.output, this.outputTagConsumer);
+        if (this.outputTagConsumer != null) CustomData.update(
+            BCLDataComponents.ANVIL_ENTITY_DATA,
+            this.output,
+            this.outputTagConsumer
+        );
 
         final R recipe = createRecipe(ctx);
         ctx.recipeOutput().accept(key, recipe, advancementHolder);
     }
 
-    protected abstract R createRecipe(org.betterx.wover.recipe.api.RecipeBuilder.Context ctx);
+    protected abstract R createRecipe(
+        org.betterx.wover.recipe.api.RecipeBuilder.Context ctx
+    );
 
     @SuppressWarnings("removal")
     protected void setupAdvancementForResult() {
         advancement
-                .parent(RecipeBuilder.ROOT_RECIPE_ADVANCEMENT)//automatically at root level
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(key))
-                .rewards(net.minecraft.advancements.AdvancementRewards.Builder.recipe(key))
-                .requirements(AdvancementRequirements.Strategy.OR);
+            .parent(RecipeBuilder.ROOT_RECIPE_ADVANCEMENT) //automatically at root level
+            .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(key))
+            .rewards(
+                net.minecraft.advancements.AdvancementRewards.Builder.recipe(
+                    key
+                )
+            )
+            .requirements(AdvancementRequirements.Strategy.OR);
     }
 
-    protected ResourceLocation createAdvancementId() {
-        return key.location().withPrefix("recipes/" + category.getFolderName() + "/");
+    protected Identifier createAdvancementId() {
+        return key
+            .location()
+            .withPrefix("recipes/" + category.getFolderName() + "/");
     }
 
     public I setPrimaryInput(ItemLike... inputs) {
@@ -141,7 +159,7 @@ public abstract class BCLBaseRecipeBuilder<I extends BaseRecipeBuilder<I>, R ext
     }
 
     public I setOutputTag(CompoundTag tag) {
-        this.outputTagConsumer = (itemTag) -> {
+        this.outputTagConsumer = itemTag -> {
             for (String k : tag.keySet()) {
                 itemTag.put(k, tag.get(k));
             }
@@ -153,5 +171,4 @@ public abstract class BCLBaseRecipeBuilder<I extends BaseRecipeBuilder<I>, R ext
         this.outputTagConsumer = consumer;
         return (I) this;
     }
-
 }

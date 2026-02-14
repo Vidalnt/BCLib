@@ -5,7 +5,7 @@ package org.betterx.bclib.integration.emi;
 //
 //import net.minecraft.client.Minecraft;
 //import net.minecraft.core.Holder;
-//import net.minecraft.resources.ResourceLocation;
+//import net.minecraft.resources.Identifier;
 //import net.minecraft.world.item.Item;
 //import net.minecraft.world.item.crafting.Ingredient;
 //import net.minecraft.world.item.crafting.RecipeHolder;
@@ -24,13 +24,13 @@ package org.betterx.bclib.integration.emi;
 //import org.jetbrains.annotations.Nullable;
 //
 //public class EMIAnvilRecipe implements EmiRecipe {
-//    private final ResourceLocation id;
+//    private final Identifier id;
 //    private final List<EmiIngredient> input;
 //    private final List<EmiStack> output;
 //    private final EmiRecipeCategory category;
 //
 //    public EMIAnvilRecipe(RecipeHolder<AnvilRecipe> recipe, Item hammer) {
-//        this.id = ResourceLocation.fromNamespaceAndPath(
+//        this.id = Identifier.fromNamespaceAndPath(
 //                "emi",
 //                recipe.id().getNamespace() + "/" + recipe.id().getPath() + "/anvil/" + hammer.getDescriptionId()
 //        );
@@ -63,7 +63,7 @@ package org.betterx.bclib.integration.emi;
 //    }
 //
 //    @Override
-//    public @Nullable ResourceLocation getId() {
+//    public @Nullable Identifier getId() {
 //        return id;
 //    }
 //

@@ -1,5 +1,9 @@
 package org.betterx.bclib;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.resources.Identifier;
 import org.betterx.bclib.api.v2.levelgen.LevelGenEvents;
 import org.betterx.bclib.api.v2.levelgen.structures.TemplatePiece;
 import org.betterx.bclib.api.v3.tag.BCLBlockTags;
@@ -18,25 +22,17 @@ import org.betterx.wover.datagen.api.WoverDataGenEntryPoint;
 import org.betterx.wover.state.api.WorldConfig;
 import org.betterx.wover.ui.api.VersionChecker;
 
-import net.minecraft.resources.ResourceLocation;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
-
 public class BCLib implements ModInitializer {
+
     public static final ModCore C = ModCore.create("bclib");
     public static final String MOD_ID = C.namespace;
     public static final Logger LOGGER = C.LOG;
 
     public static final boolean RUNS_NULLSCAPE = FabricLoader.getInstance()
-                                                             .getModContainer("nullscape")
-                                                             .isPresent();
+        .getModContainer("nullscape")
+        .isPresent();
 
-    private void onDatagen() {
-
-    }
-
+    private void onDatagen() {}
 
     @Override
     public void onInitialize() {
@@ -57,10 +53,13 @@ public class BCLib implements ModInitializer {
         VersionChecker.registerMod(C);
 
         if (isDatagen()) {
-            WoverDataGenEntryPoint.registerAutoProvider(BCLAutoBlockTagProvider::new);
-            WoverDataGenEntryPoint.registerAutoProvider(BCLAutoItemTagProvider::new);
+            WoverDataGenEntryPoint.registerAutoProvider(
+                BCLAutoBlockTagProvider::new
+            );
+            WoverDataGenEntryPoint.registerAutoProvider(
+                BCLAutoItemTagProvider::new
+            );
             onDatagen();
-
         }
     }
 
@@ -73,11 +72,12 @@ public class BCLib implements ModInitializer {
     }
 
     public static boolean isClient() {
-        return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
+        return (
+            FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT
+        );
     }
 
-    public static ResourceLocation makeID(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+    public static Identifier makeID(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
-
 }

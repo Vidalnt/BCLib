@@ -1,14 +1,14 @@
 package org.betterx.bclib.integration;
 
-import org.betterx.bclib.BCLib;
-import org.betterx.wover.core.api.ModCore;
-import org.betterx.wover.tag.api.TagManager;
-
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
@@ -16,27 +16,23 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import org.betterx.bclib.BCLib;
+import org.betterx.wover.core.api.ModCore;
+import org.betterx.wover.tag.api.TagManager;
 
 public abstract class ModIntegration {
+
     private final ModCore C;
 
-    public void init() {
-    }
+    public void init() {}
 
-    public void initDatagen() {
-
-    }
+    public void initDatagen() {}
 
     public ModIntegration(ModCore modCore) {
         this.C = modCore;
     }
 
-    public ResourceLocation getID(String name) {
+    public Identifier getID(String name) {
         return C.mk(name);
     }
 
@@ -45,11 +41,15 @@ public abstract class ModIntegration {
     }
 
     public Block getBlock(String name) {
-        return BuiltInRegistries.BLOCK.get(getID(name)).map(h -> h.value()).orElse(null);
+        return BuiltInRegistries.BLOCK.get(getID(name))
+            .map(h -> h.value())
+            .orElse(null);
     }
 
     public Item getItem(String name) {
-        return BuiltInRegistries.ITEM.get(getID(name)).map(h -> h.value()).orElse(null);
+        return BuiltInRegistries.ITEM.get(getID(name))
+            .map(h -> h.value())
+            .orElse(null);
     }
 
     public BlockState getDefaultState(String name) {
@@ -63,7 +63,6 @@ public abstract class ModIntegration {
     public boolean modIsInstalled() {
         return C.isLoaded();
     }
-
 
     public ConfiguredFeature<?, ?> getConfiguredFeature(String name) {
         return null; //BuiltInRegistries.CONFIGURED_FEATURE.get(getID(name));
@@ -94,28 +93,46 @@ public abstract class ModIntegration {
                 if (field != null) {
                     return (T) field.get(null);
                 }
-            } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+            } catch (
+                NoSuchFieldException
+                | SecurityException
+                | IllegalArgumentException
+                | IllegalAccessException e
+            ) {
                 e.printStackTrace();
             }
         }
         return null;
     }
 
-    public Object getFieldValue(Class<?> cl, String name, Object classInstance) {
+    public Object getFieldValue(
+        Class<?> cl,
+        String name,
+        Object classInstance
+    ) {
         if (cl != null) {
             try {
                 Field field = cl.getDeclaredField(name);
                 if (field != null) {
                     return field.get(classInstance);
                 }
-            } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+            } catch (
+                NoSuchFieldException
+                | SecurityException
+                | IllegalArgumentException
+                | IllegalAccessException e
+            ) {
                 e.printStackTrace();
             }
         }
         return null;
     }
 
-    public Method getMethod(Class<?> cl, String functionName, Class<?>... args) {
+    public Method getMethod(
+        Class<?> cl,
+        String functionName,
+        Class<?>... args
+    ) {
         if (cl != null) {
             try {
                 return cl.getMethod(functionName, args);
@@ -129,11 +146,19 @@ public abstract class ModIntegration {
         return null;
     }
 
-    public Object executeMethod(Object instance, Method method, Object... args) {
+    public Object executeMethod(
+        Object instance,
+        Method method,
+        Object... args
+    ) {
         if (method != null) {
             try {
                 return method.invoke(instance, args);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            } catch (
+                IllegalAccessException
+                | IllegalArgumentException
+                | InvocationTargetException e
+            ) {
                 BCLib.LOGGER.error(e.getMessage());
                 if (BCLib.isDevEnvironment()) {
                     e.printStackTrace();
@@ -143,7 +168,11 @@ public abstract class ModIntegration {
         return null;
     }
 
-    public Object getAndExecuteStatic(Class<?> cl, String functionName, Object... args) {
+    public Object getAndExecuteStatic(
+        Class<?> cl,
+        String functionName,
+        Object... args
+    ) {
         if (cl != null) {
             Class<?>[] classes = new Class<?>[args.length];
             for (int i = 0; i < args.length; i++) {
@@ -157,10 +186,10 @@ public abstract class ModIntegration {
 
     @SuppressWarnings("unchecked")
     public <T extends Object> T getAndExecuteRuntime(
-            Class<?> cl,
-            Object instance,
-            String functionName,
-            Object... args
+        Class<?> cl,
+        Object instance,
+        String functionName,
+        Object... args
     ) {
         if (instance != null) {
             Class<?>[] classes = new Class<?>[args.length];
@@ -179,8 +208,12 @@ public abstract class ModIntegration {
                 if (constructor.getParameterCount() == args.length) {
                     try {
                         return constructor.newInstance(args);
-                    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
-                             InvocationTargetException e) {
+                    } catch (
+                        InstantiationException
+                        | IllegalAccessException
+                        | IllegalArgumentException
+                        | InvocationTargetException e
+                    ) {
                         BCLib.LOGGER.error(e.getMessage());
                         if (BCLib.isDevEnvironment()) {
                             e.printStackTrace();

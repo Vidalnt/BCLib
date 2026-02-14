@@ -1,27 +1,29 @@
 package org.betterx.bclib.api.v2.advancement;
 
+import java.util.Optional;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.core.ClientAsset;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
 
 class Display {
+
     ItemStack icon;
     Component title;
     net.minecraft.network.chat.Component description;
-    @Nullable ResourceLocation background;
+
+    @Nullable
+    Identifier background;
+
     AdvancementType frame;
     boolean showToast;
     boolean announceChat;
     boolean hidden;
 
-    Display() {
-    }
+    Display() {}
 
     Display reset() {
         this.icon = null;
@@ -37,10 +39,16 @@ class Display {
 
     DisplayInfo build() {
         return new DisplayInfo(
-                icon, title, description,
-                background == null ? Optional.empty() : Optional.of(new ClientAsset(background)),
-                frame, showToast, announceChat, hidden
+            icon,
+            title,
+            description,
+            background == null
+                ? Optional.empty()
+                : Optional.of(new ClientAsset(background)),
+            frame,
+            showToast,
+            announceChat,
+            hidden
         );
     }
 }
-

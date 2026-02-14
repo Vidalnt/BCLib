@@ -3,7 +3,7 @@ package org.betterx.bclib.integration.emi;
 /*import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -19,7 +19,7 @@ import dev.emi.emi.api.widget.WidgetHolder;
 import java.util.List;
 
 public abstract class EMIAbstractAlloyingRecipe<C extends RecipeInput, T extends Recipe<C>> implements EmiRecipe {
-    private final ResourceLocation id;
+    private final Identifier id;
     private final List<EmiIngredient> input;
     private final List<EmiStack> output;
     protected final T recipe;
@@ -29,7 +29,7 @@ public abstract class EMIAbstractAlloyingRecipe<C extends RecipeInput, T extends
 
     public EMIAbstractAlloyingRecipe(
             RecipeHolder<T> recipe,
-            ResourceLocation id,
+            Identifier id,
             int fuelMultiplier,
             boolean infiniBurn
     ) {
@@ -57,7 +57,7 @@ public abstract class EMIAbstractAlloyingRecipe<C extends RecipeInput, T extends
     }
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -120,4 +120,3 @@ public abstract class EMIAbstractAlloyingRecipe<C extends RecipeInput, T extends
         return true;
     }
 }*/
-

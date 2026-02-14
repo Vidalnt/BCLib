@@ -1,5 +1,10 @@
 package org.betterx.datagen.bclib.worldgen;
 
+import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Block;
 import org.betterx.bclib.BCLib;
 import org.betterx.bclib.behaviours.interfaces.*;
 import org.betterx.bclib.interfaces.Fuel;
@@ -12,46 +17,45 @@ import org.betterx.wover.tag.api.event.context.TagBootstrapContext;
 import org.betterx.wover.tag.api.predefined.CommonBlockTags;
 import org.betterx.wover.tag.api.predefined.MineableTags;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.world.level.block.Block;
+public class BCLAutoBlockTagProvider
+    extends WoverTagProvider.ForBlocks
+    implements WoverAutoProvider
+{
 
-import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
-
-
-public class BCLAutoBlockTagProvider extends WoverTagProvider.ForBlocks implements WoverAutoProvider {
     public BCLAutoBlockTagProvider(ModCore modCore) {
         super(modCore);
     }
 
-    private static void processBlockCommon(TagBootstrapContext<Block> context, Block block) {
+    private static void processBlockCommon(
+        TagBootstrapContext<Block> context,
+        Block block
+    ) {
         if (!(block instanceof PreventMineableAdd)) {
             if (block instanceof AddMineableShears) {
                 context.add(block, MineableTags.SHEARS);
             }
             if (block instanceof AddMineableAxe) {
-//                if (!context.contains(BlockTags.WOODEN_DOORS, block)
-//                        && !context.contains(BlockTags.WOODEN_BUTTONS, block)
-//                        && !context.contains(BlockTags.WOODEN_SLABS, block)
-//                        && !context.contains(BlockTags.WOODEN_FENCES, block)
-//                        && !context.contains(BlockTags.WOODEN_STAIRS, block)
-//                        && !context.contains(BlockTags.WOODEN_PRESSURE_PLATES, block)
-//                        && !context.contains(BlockTags.WOODEN_TRAPDOORS, block)
-//                        && !context.contains(CommonBlockTags.WOODEN_BARREL, block)
-//                        && !context.contains(CommonBlockTags.WOODEN_CHEST, block)
-//                        && !context.contains(CommonBlockTags.WOODEN_COMPOSTER, block)
-//                        && !context.contains(CommonBlockTags.WORKBENCHES, block)
-//                        && !context.contains(BlockTags.SIGNS, block)
-//                        && !context.contains(BlockTags.PLANKS, block)
-//                        && !context.contains(BlockTags.LOGS, block)
-//                        && !context.contains(BlockTags.FENCE_GATES, block)
-//                        && !context.contains(BlockTags.ALL_HANGING_SIGNS, block)
-//                        && !context.contains(CommonBlockTags.WORKBENCHES, block)
-//                        && !context.contains(org.betterx.wover.tag.api.predefined.CommonBlockTags.BOOKSHELVES, block)
-//                ) {
+                //                if (!context.contains(BlockTags.WOODEN_DOORS, block)
+                //                        && !context.contains(BlockTags.WOODEN_BUTTONS, block)
+                //                        && !context.contains(BlockTags.WOODEN_SLABS, block)
+                //                        && !context.contains(BlockTags.WOODEN_FENCES, block)
+                //                        && !context.contains(BlockTags.WOODEN_STAIRS, block)
+                //                        && !context.contains(BlockTags.WOODEN_PRESSURE_PLATES, block)
+                //                        && !context.contains(BlockTags.WOODEN_TRAPDOORS, block)
+                //                        && !context.contains(CommonBlockTags.WOODEN_BARREL, block)
+                //                        && !context.contains(CommonBlockTags.WOODEN_CHEST, block)
+                //                        && !context.contains(CommonBlockTags.WOODEN_COMPOSTER, block)
+                //                        && !context.contains(CommonBlockTags.WORKBENCHES, block)
+                //                        && !context.contains(BlockTags.SIGNS, block)
+                //                        && !context.contains(BlockTags.PLANKS, block)
+                //                        && !context.contains(BlockTags.LOGS, block)
+                //                        && !context.contains(BlockTags.FENCE_GATES, block)
+                //                        && !context.contains(BlockTags.ALL_HANGING_SIGNS, block)
+                //                        && !context.contains(CommonBlockTags.WORKBENCHES, block)
+                //                        && !context.contains(org.betterx.wover.tag.api.predefined.CommonBlockTags.BOOKSHELVES, block)
+                //                ) {
                 context.add(block, MineableTags.AXE);
-//                }
+                //                }
             }
             if (block instanceof AddMineablePickaxe) {
                 context.add(block, MineableTags.PICKAXE);
@@ -74,7 +78,10 @@ public class BCLAutoBlockTagProvider extends WoverTagProvider.ForBlocks implemen
             context.add(block, CommonBlockTags.WATER_PLANT);
         }
 
-        if (block instanceof BehaviourPlant || block instanceof BehaviourShearablePlant) {
+        if (
+            block instanceof BehaviourPlant ||
+            block instanceof BehaviourShearablePlant
+        ) {
             context.add(block, CommonBlockTags.PLANT);
         }
 
@@ -99,11 +106,20 @@ public class BCLAutoBlockTagProvider extends WoverTagProvider.ForBlocks implemen
         }
 
         if (block instanceof BehaviourImmobile) {
-            context.add(block, CommonBlockTags.IMMOBILE, BlockTags.DRAGON_IMMUNE);
+            context.add(
+                block,
+                CommonBlockTags.IMMOBILE,
+                BlockTags.DRAGON_IMMUNE
+            );
         }
 
         if (block instanceof BehaviourObsidian) {
-            context.add(block, CommonBlockTags.IS_OBSIDIAN, BlockTags.DRAGON_IMMUNE, BlockTags.NEEDS_DIAMOND_TOOL);
+            context.add(
+                block,
+                CommonBlockTags.IS_OBSIDIAN,
+                BlockTags.DRAGON_IMMUNE,
+                BlockTags.NEEDS_DIAMOND_TOOL
+            );
         }
 
         if (block instanceof BehaviourPortalFrame) {
@@ -115,24 +131,37 @@ public class BCLAutoBlockTagProvider extends WoverTagProvider.ForBlocks implemen
         }
 
         if (block instanceof Fuel fl) {
-            FuelRegistryEvents.BUILD.register((builder, fuelContext) -> builder.add(block, fl.getFuelTime()));
+            FuelRegistryEvents.BUILD.register((builder, fuelContext) ->
+                builder.add(block, fl.getFuelTime())
+            );
         }
 
-        final ResourceLocation location = BuiltInRegistries.BLOCK.getKey(block);
+        final Identifier location = BuiltInRegistries.BLOCK.getKey(block);
         if (!location.getNamespace().equals("minecraft")) {
-            if (!(block instanceof HasMinableBehaviour) && block.defaultBlockState()
-                                                                .requiresCorrectToolForDrops()) {
-                BCLib.LOGGER.error("Block " + block + "(" + block.getClass() + ")" + " has no mineable behaviour!");
+            if (
+                !(block instanceof HasMinableBehaviour) &&
+                block.defaultBlockState().requiresCorrectToolForDrops()
+            ) {
+                BCLib.LOGGER.error(
+                    "Block " +
+                        block +
+                        "(" +
+                        block.getClass() +
+                        ")" +
+                        " has no mineable behaviour!"
+                );
             }
         }
     }
 
-    private static void processCommonBlockTags(TagBootstrapContext<Block> context, ModCore modCore) {
+    private static void processCommonBlockTags(
+        TagBootstrapContext<Block> context,
+        ModCore modCore
+    ) {
         BCLib.C.LOG.debug("Processing Blocks for " + modCore.namespace);
-        BlockRegistry
-                .forMod(modCore)
-                .allBlocks()
-                .forEach(block -> processBlockCommon(context, block));
+        BlockRegistry.forMod(modCore)
+            .allBlocks()
+            .forEach(block -> processBlockCommon(context, block));
     }
 
     @Override

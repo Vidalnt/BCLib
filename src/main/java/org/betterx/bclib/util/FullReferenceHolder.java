@@ -1,32 +1,34 @@
 package org.betterx.bclib.util;
 
 import com.mojang.datafixers.util.Either;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderOwner;
-import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
-
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderOwner;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.Nullable;
 
 public class FullReferenceHolder<T> implements Holder<T> {
-    final private Set<TagKey<T>> tags = Set.of();
-    @Nullable
-    final private ResourceKey<T> key;
-    @Nullable
-    final private T value;
 
-    final private ResourceKey<Registry<T>> owner;
+    private final Set<TagKey<T>> tags = Set.of();
+
+    @Nullable
+    private final ResourceKey<T> key;
+
+    @Nullable
+    private final T value;
+
+    private final ResourceKey<Registry<T>> owner;
 
     private FullReferenceHolder(
-            ResourceKey<Registry<T>> owner,
-            @Nullable ResourceKey<T> resourceKey,
-            @Nullable T object
+        ResourceKey<Registry<T>> owner,
+        @Nullable ResourceKey<T> resourceKey,
+        @Nullable T object
     ) {
         this.owner = owner;
         this.key = resourceKey;
@@ -34,25 +36,33 @@ public class FullReferenceHolder<T> implements Holder<T> {
     }
 
     public static <T> FullReferenceHolder<T> create(
-            ResourceKey<Registry<T>> owner,
-            ResourceKey<T> resourceKey,
-            @Nullable T object
+        ResourceKey<Registry<T>> owner,
+        ResourceKey<T> resourceKey,
+        @Nullable T object
     ) {
         return new FullReferenceHolder<>(owner, resourceKey, object);
     }
 
     public static <T> FullReferenceHolder<T> create(
-            ResourceKey<Registry<T>> owner,
-            ResourceLocation id,
-            @Nullable T object
+        ResourceKey<Registry<T>> owner,
+        Identifier id,
+        @Nullable T object
     ) {
-        return new FullReferenceHolder<>(owner, ResourceKey.create(owner, id), object);
+        return new FullReferenceHolder<>(
+            owner,
+            ResourceKey.create(owner, id),
+            object
+        );
     }
-
 
     public ResourceKey<T> key() {
         if (this.key == null) {
-            throw new IllegalStateException("Trying to access unbound value '" + this.value + "' from registry " + this.owner);
+            throw new IllegalStateException(
+                "Trying to access unbound value '" +
+                    this.value +
+                    "' from registry " +
+                    this.owner
+            );
         } else {
             return this.key;
         }
@@ -61,15 +71,20 @@ public class FullReferenceHolder<T> implements Holder<T> {
     @Override
     public T value() {
         if (this.value == null) {
-            throw new IllegalStateException("Trying to access unbound value '" + this.key + "' from registry " + this.owner);
+            throw new IllegalStateException(
+                "Trying to access unbound value '" +
+                    this.key +
+                    "' from registry " +
+                    this.owner
+            );
         } else {
             return this.value;
         }
     }
 
     @Override
-    public boolean is(ResourceLocation resourceLocation) {
-        return this.key().location().equals(resourceLocation);
+    public boolean is(Identifier resourceLocation) {
+        return this.key().identifier().equals(resourceLocation);
     }
 
     @Override

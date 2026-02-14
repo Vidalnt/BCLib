@@ -13,7 +13,6 @@ extendable  class   net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator
 accessible  class    net/minecraft/core/registries/BuiltInRegistries$RegistryBootstrap
 accessible  class    net/minecraft/world/level/levelgen/SurfaceRules$SequenceRuleSource
 accessible  class    net/minecraft/server/dedicated/DedicatedServerProperties$WorldDimensionData
-accessible  class    net/minecraft/client/resources/model/AtlasSet$AtlasEntry
 extendable  class   net/minecraft/world/level/block/state/properties/WoodType
 accessible class net/minecraft/world/level/levelgen/SurfaceRules$BiomeConditionSource
 accessible class net/minecraft/world/level/levelgen/SurfaceRules$TestRuleSource
@@ -48,6 +47,6 @@ accessible method net/minecraft/resources/RegistryDataLoader$RegistryData <init>
 
 #Fields
 accessible field net/minecraft/world/entity/ai/village/poi/PoiTypes TYPE_BY_STATE Ljava/util/Map;
-#accessible field net/minecraft/world/level/block/entity/RandomizableContainerBlockEntity lootTable Lnet/minecraft/resources/ResourceLocation;
+#accessible field net/minecraft/world/level/block/entity/RandomizableContainerBlockEntity lootTable Lnet/minecraft/resources/Identifier;
 #accessible field net/minecraft/world/item/crafting/Ingredient values [Lnet/minecraft/world/item/crafting/Ingredient$Value;
 #accessible field net/minecraft/world/item/crafting/Ingredient$TagValue CODEC Lcom/mojang/serialization/Codec;

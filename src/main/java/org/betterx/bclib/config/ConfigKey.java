@@ -1,13 +1,12 @@
 package org.betterx.bclib.config;
 
-import org.betterx.bclib.util.Pair;
-
-import net.minecraft.resources.ResourceLocation;
-
 import java.util.Arrays;
+import net.minecraft.resources.Identifier;
+import org.betterx.bclib.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class ConfigKey {
+
     private final String[] path;
     private final String entry;
     private final boolean root;
@@ -19,7 +18,7 @@ public class ConfigKey {
         this.root = path.length == 0 || (path.length == 1 && path[0].isEmpty());
     }
 
-    public ConfigKey(String entry, ResourceLocation path) {
+    public ConfigKey(String entry, Identifier path) {
         this(entry, path.getNamespace(), path.getPath());
     }
 
@@ -81,7 +80,9 @@ public class ConfigKey {
             throw new NullPointerException("Config key must be not null!");
         }
         if (entry.isEmpty()) {
-            throw new IndexOutOfBoundsException("Config key must be not empty!");
+            throw new IndexOutOfBoundsException(
+                "Config key must be not empty!"
+            );
         }
     }
 
@@ -90,7 +91,10 @@ public class ConfigKey {
         if (parts.length == 1) {
             return new Pair(parts[0].trim(), "");
         } else if (parts.length == 2) {
-            return new Pair(parts[0].trim(), " " + ("[default:" + parts[1]).trim());
+            return new Pair(
+                parts[0].trim(),
+                " " + ("[default:" + parts[1]).trim()
+            );
         }
         return new Pair(key, "");
     }

@@ -1,61 +1,67 @@
 package org.betterx.bclib.api.v2.dataexchange;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class BaseDataHandler<T extends CustomPacketPayload> {
-    private final boolean originatesOnServer;
-    @NotNull
-    private final ResourceLocation identifier;
 
-    protected BaseDataHandler(@NotNull ResourceLocation identifier, boolean originatesOnServer) {
+    private final boolean originatesOnServer;
+
+    @NotNull
+    private final Identifier identifier;
+
+    protected BaseDataHandler(
+        @NotNull Identifier identifier,
+        boolean originatesOnServer
+    ) {
         this.originatesOnServer = originatesOnServer;
         this.identifier = identifier;
     }
 
-    final public boolean getOriginatesOnServer() {
+    public final boolean getOriginatesOnServer() {
         return originatesOnServer;
     }
 
-    final public @NotNull ResourceLocation getIdentifier() {
+    public final @NotNull Identifier getIdentifier() {
         return identifier;
     }
 
     @Environment(EnvType.CLIENT)
     abstract void receiveFromServer(
-            Minecraft client,
-            ClientPacketListener handler,
-            T payload,
-            PacketSender responseSender
+        Minecraft client,
+        ClientPacketListener handler,
+        T payload,
+        PacketSender responseSender
     );
 
     private ServerPlayer lastMessageSender;
 
     void receiveFromClient(
-            MinecraftServer server,
-            ServerPlayer player,
-            ServerGamePacketListenerImpl handler,
-            T payload,
-            PacketSender responseSender
+        MinecraftServer server,
+        ServerPlayer player,
+        ServerGamePacketListenerImpl handler,
+        T payload,
+        PacketSender responseSender
     ) {
         lastMessageSender = player;
     }
 
-    final protected <M extends CustomPacketPayload> boolean reply(BaseDataHandler<M> message, MinecraftServer server) {
+    protected final <M extends CustomPacketPayload> boolean reply(
+        BaseDataHandler<M> message,
+        MinecraftServer server
+    ) {
         if (lastMessageSender == null) return false;
         message.sendToClient(server, lastMessageSender);
         return true;
@@ -74,7 +80,14 @@ public abstract class BaseDataHandler<T extends CustomPacketPayload> {
 
     @Override
     public String toString() {
-        return "BasDataHandler{" + "originatesOnServer=" + originatesOnServer + ", identifier=" + identifier + '}';
+        return (
+            "BasDataHandler{" +
+            "originatesOnServer=" +
+            originatesOnServer +
+            ", identifier=" +
+            identifier +
+            '}'
+        );
     }
 
     /**
@@ -103,7 +116,10 @@ public abstract class BaseDataHandler<T extends CustomPacketPayload> {
         if (this == o) return true;
         if (!(o instanceof BaseDataHandler)) return false;
         BaseDataHandler<?> that = (BaseDataHandler<?>) o;
-        return originatesOnServer == that.originatesOnServer && identifier.equals(that.identifier);
+        return (
+            originatesOnServer == that.originatesOnServer &&
+            identifier.equals(that.identifier)
+        );
     }
 
     @Override
@@ -111,4 +127,3 @@ public abstract class BaseDataHandler<T extends CustomPacketPayload> {
         return Objects.hash(originatesOnServer, identifier);
     }
 }
-

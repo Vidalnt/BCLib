@@ -7,10 +7,11 @@ buildscript {
         gradlePluginPortal()
     }
 }
-sourceCompatibility = JavaVersion.VERSION_21
-targetCompatibility = JavaVersion.VERSION_21
 
-archivesBaseName = project.archives_base_name
+base {
+    archivesName = project.archives_base_name
+}
+
 version = project.mod_version
 group = project.maven_group
 
@@ -27,6 +28,8 @@ repositories {
 
 java {
     withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 def local_wunderlib = findProject(':wunderlib') != null
@@ -42,7 +45,7 @@ loom {
             vmArg "-Dfabric-api.datagen"
             vmArg "-Dfabric-api.datagen.output-dir=${file("src/main/generated")}"
             vmArg "-Dfabric-api.datagen.strict-validation"
-            vmArg "-Dfabric-api.datagen.modid=${archivesBaseName}"
+            vmArg "-Dfabric-api.datagen.modid=${project.archives_base_name}"
 
             runDir "build/datagen"
         }

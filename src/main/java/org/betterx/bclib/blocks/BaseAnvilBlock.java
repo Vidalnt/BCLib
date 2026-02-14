@@ -1,26 +1,19 @@
 package org.betterx.bclib.blocks;
 
-import org.betterx.bclib.client.models.BCLModels;
-import org.betterx.bclib.interfaces.tools.AddMineablePickaxe;
-import org.betterx.bclib.items.BaseAnvilItem;
-import org.betterx.bclib.util.BCLDataComponents;
-import org.betterx.bclib.util.BlocksHelper;
-import org.betterx.bclib.util.LootUtil;
-import org.betterx.wover.block.api.BlockProperties;
-import org.betterx.wover.block.api.CustomBlockItemProvider;
-import org.betterx.wover.block.api.client.trait.BlockModelTrait;
-import org.betterx.wover.block.api.client.trait.ClientBlockTraits;
-import org.betterx.wover.block.api.trait.BlockTraitLookup;
-import org.betterx.wover.sets.api.blocks.BlockSet;
-
 import static net.minecraft.client.data.models.BlockModelGenerators.*;
+
+import com.google.common.collect.Lists;
+import java.util.Collections;
+import java.util.List;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TextureSlot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -37,19 +30,28 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
-import com.google.common.collect.Lists;
-
-import java.util.Collections;
-import java.util.List;
+import org.betterx.bclib.client.models.BCLModels;
+import org.betterx.bclib.interfaces.tools.AddMineablePickaxe;
+import org.betterx.bclib.items.BaseAnvilItem;
+import org.betterx.bclib.util.BCLDataComponents;
+import org.betterx.bclib.util.BlocksHelper;
+import org.betterx.bclib.util.LootUtil;
+import org.betterx.wover.block.api.BlockProperties;
+import org.betterx.wover.block.api.CustomBlockItemProvider;
+import org.betterx.wover.block.api.client.trait.BlockModelTrait;
+import org.betterx.wover.block.api.client.trait.ClientBlockTraits;
+import org.betterx.wover.block.api.trait.BlockTraitLookup;
+import org.betterx.wover.sets.api.blocks.BlockSet;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class BaseAnvilBlock extends AnvilBlock implements AddMineablePickaxe, CustomBlockItemProvider {
-    public static final IntegerProperty DESTRUCTION = BlockProperties.DESTRUCTION;
+public abstract class BaseAnvilBlock
+    extends AnvilBlock
+    implements AddMineablePickaxe, CustomBlockItemProvider
+{
+
+    public static final IntegerProperty DESTRUCTION =
+        BlockProperties.DESTRUCTION;
     public IntegerProperty durability;
 
     public BaseAnvilBlock(MapColor color) {
@@ -61,10 +63,16 @@ public abstract class BaseAnvilBlock extends AnvilBlock implements AddMineablePi
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(
+        StateDefinition.Builder<Block, BlockState> builder
+    ) {
         super.createBlockStateDefinition(builder);
         if (getMaxDurability() != 3) {
-            durability = IntegerProperty.create("durability", 0, getMaxDurability());
+            durability = IntegerProperty.create(
+                "durability",
+                0,
+                getMaxDurability()
+            );
         } else {
             durability = BlockProperties.DEFAULT_ANVIL_DURABILITY;
         }
@@ -72,47 +80,56 @@ public abstract class BaseAnvilBlock extends AnvilBlock implements AddMineablePi
     }
 
     @Environment(EnvType.CLIENT)
-    public static BlockModelTrait buildModel(BlockSet<?> set, BlockTraitLookup traitLookup) {
-        return ClientBlockTraits.MODEL.with(
-                (key, block, generator) -> {
-                    final ResourceLocation id = TextureMapping.getBlockTexture(block);
-                    final TextureMapping mapping = new TextureMapping()
-                            .put(TextureSlot.FRONT, id.withSuffix("_front"))
-                            .put(TextureSlot.BACK, id.withSuffix("_back"))
-                            .put(TextureSlot.BOTTOM, id.withSuffix("_bottom"))
-                            .put(BCLModels.PANEL, id.withSuffix("_panel"));
+    public static BlockModelTrait buildModel(
+        BlockSet<?> set,
+        BlockTraitLookup traitLookup
+    ) {
+        return ClientBlockTraits.MODEL.with((key, block, generator) -> {
+            final Identifier id = TextureMapping.getBlockTexture(block);
+            final TextureMapping mapping = new TextureMapping()
+                .put(TextureSlot.FRONT, id.withSuffix("_front"))
+                .put(TextureSlot.BACK, id.withSuffix("_back"))
+                .put(TextureSlot.BOTTOM, id.withSuffix("_bottom"))
+                .put(BCLModels.PANEL, id.withSuffix("_panel"));
 
-                    final var prop = PropertyDispatch.initial(DESTRUCTION, FACING);
+            final var prop = PropertyDispatch.initial(DESTRUCTION, FACING);
 
-                    for (int d = 0; d < 3; d++) {
-                        mapping.put(TextureSlot.TOP, id.withSuffix("_top_" + d));
-                        final ResourceLocation modelLocation = BCLModels.ANVIL.createWithSuffix(
-                                block,
-                                "_" + d,
-                                mapping,
-                                generator.modelOutput()
-                        );
-                        final var model = plainVariant(modelLocation);
+            for (int d = 0; d < 3; d++) {
+                mapping.put(TextureSlot.TOP, id.withSuffix("_top_" + d));
+                final Identifier modelLocation =
+                    BCLModels.ANVIL.createWithSuffix(
+                        block,
+                        "_" + d,
+                        mapping,
+                        generator.modelOutput()
+                    );
+                final var model = plainVariant(modelLocation);
 
-                        prop.select(d, Direction.NORTH, model);
-                        prop.select(d, Direction.EAST, model.with(Y_ROT_90));
-                        prop.select(d, Direction.SOUTH, model.with(Y_ROT_180));
-                        prop.select(d, Direction.WEST, model.with(Y_ROT_270));
-                    }
-                    generator.acceptBlockState(MultiVariantGenerator.dispatch(block).with(prop));
-                    generator.delegateItemModel(block, id.withSuffix("_0"));
-                }
-        );
+                prop.select(d, Direction.NORTH, model);
+                prop.select(d, Direction.EAST, model.with(Y_ROT_90));
+                prop.select(d, Direction.SOUTH, model.with(Y_ROT_180));
+                prop.select(d, Direction.WEST, model.with(Y_ROT_270));
+            }
+            generator.acceptBlockState(
+                MultiVariantGenerator.dispatch(block).with(prop)
+            );
+            generator.delegateItemModel(block, id.withSuffix("_0"));
+        });
     }
 
-
     @Override
-    public BlockItem getCustomBlockItem(ResourceLocation blockID, Item.Properties settings) {
+    public BlockItem getCustomBlockItem(
+        Identifier blockID,
+        Item.Properties settings
+    ) {
         return new BaseAnvilItem(this, settings);
     }
 
     @Override
-    public @NotNull List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
+    public @NotNull List<ItemStack> getDrops(
+        BlockState state,
+        LootParams.Builder builder
+    ) {
         int destruction = state.getValue(DESTRUCTION);
         int durability = state.getValue(getDurabilityProp());
         int value = destruction * getMaxDurability() + durability;
@@ -121,9 +138,10 @@ public abstract class BaseAnvilBlock extends AnvilBlock implements AddMineablePi
             ItemStack itemStack = new ItemStack(this);
 
             CustomData.update(
-                    BCLDataComponents.ANVIL_ENTITY_DATA,
-                    itemStack,
-                    (compoundTag) -> compoundTag.putInt(BaseAnvilItem.DESTRUCTION, value)
+                BCLDataComponents.ANVIL_ENTITY_DATA,
+                itemStack,
+                compoundTag ->
+                    compoundTag.putInt(BaseAnvilItem.DESTRUCTION, value)
             );
 
             return Lists.newArrayList(itemStack);
@@ -146,21 +164,33 @@ public abstract class BaseAnvilBlock extends AnvilBlock implements AddMineablePi
             return state.setValue(durability, value + 1);
         }
         value = state.getValue(DESTRUCTION);
-        return value < 2 ? state.setValue(DESTRUCTION, value + 1).setValue(durability, 0) : null;
+        return value < 2
+            ? state.setValue(DESTRUCTION, value + 1).setValue(durability, 0)
+            : null;
     }
 
     public BlockState damageAnvilFall(BlockState state) {
         int destruction = state.getValue(DESTRUCTION);
-        return destruction < 2 ? state.setValue(DESTRUCTION, destruction + 1) : null;
+        return destruction < 2
+            ? state.setValue(DESTRUCTION, destruction + 1)
+            : null;
     }
 
     @ApiStatus.Internal
-    public static void destroyWhenNull(Level level, BlockPos blockPos, BlockState damaged) {
+    public static void destroyWhenNull(
+        Level level,
+        BlockPos blockPos,
+        BlockState damaged
+    ) {
         if (damaged == null) {
             level.removeBlock(blockPos, false);
             level.levelEvent(LevelEvent.SOUND_ANVIL_BROKEN, blockPos, 0);
         } else {
-            level.setBlock(blockPos, damaged, BlocksHelper.FLAG_SEND_CLIENT_CHANGES);
+            level.setBlock(
+                blockPos,
+                damaged,
+                BlocksHelper.FLAG_SEND_CLIENT_CHANGES
+            );
             level.levelEvent(LevelEvent.SOUND_ANVIL_USED, blockPos, 0);
         }
     }

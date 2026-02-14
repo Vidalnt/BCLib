@@ -1,7 +1,7 @@
 package org.betterx.bclib.mixin.client;
 
-import org.betterx.bclib.interfaces.AnvilScreenHandlerExtended;
-
+import com.google.common.collect.Lists;
+import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -11,19 +11,16 @@ import net.minecraft.client.gui.screens.inventory.AnvilScreen;
 import net.minecraft.client.gui.screens.inventory.ItemCombinerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.item.ItemStack;
-
-import com.google.common.collect.Lists;
+import org.betterx.bclib.interfaces.AnvilScreenHandlerExtended;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.List;
 
 @Mixin(AnvilScreen.class)
 @Implements(@Interface(iface = ContainerEventHandler.class, prefix = "bcl$"))
@@ -34,11 +31,17 @@ public class AnvilScreenMixin extends ItemCombinerScreen<AnvilMenu> {
 
     @Shadow
     @Final
-    private static ResourceLocation ANVIL_LOCATION;
+    private static Identifier ANVIL_LOCATION;
+
     @Unique
     private final List<AbstractWidget> bcl_buttons = Lists.newArrayList();
 
-    public AnvilScreenMixin(AnvilMenu handler, Inventory playerInventory, Component title, ResourceLocation texture) {
+    public AnvilScreenMixin(
+        AnvilMenu handler,
+        Inventory playerInventory,
+        Component title,
+        Identifier texture
+    ) {
         super(handler, playerInventory, title, texture);
     }
 
@@ -46,17 +49,17 @@ public class AnvilScreenMixin extends ItemCombinerScreen<AnvilMenu> {
     public void renderErrorIcon(GuiGraphics guiGraphics, int i, int j) {
         if (this.bcl_hasRecipeError()) {
             guiGraphics.blit(
-                    RenderPipelines.GUI_TEXTURED,
-                    ANVIL_LOCATION,
-                    i + 65,
-                    j + 46,
-                    0,
-                    this.imageWidth,
-                    0,
-                    28,
-                    21,
-                    256,
-                    256
+                RenderPipelines.GUI_TEXTURED,
+                ANVIL_LOCATION,
+                i + 65,
+                j + 46,
+                0,
+                this.imageWidth,
+                0,
+                28,
+                21,
+                256,
+                256
             );
         }
     }
@@ -71,29 +74,41 @@ public class AnvilScreenMixin extends ItemCombinerScreen<AnvilMenu> {
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;
         bcl_buttons.clear();
-        bcl_buttons.add(Button.builder(Component.literal("<"), b -> be_previousRecipe())
-                              .bounds(x + 8, y + 45, 15, 20)
-                              .build());
-        bcl_buttons.add(Button.builder(Component.literal(">"), b -> be_nextRecipe())
-                              .bounds(x + 154, y + 45, 15, 20)
-                              .build());
+        bcl_buttons.add(
+            Button.builder(Component.literal("<"), b -> be_previousRecipe())
+                .bounds(x + 8, y + 45, 15, 20)
+                .build()
+        );
+        bcl_buttons.add(
+            Button.builder(Component.literal(">"), b -> be_nextRecipe())
+                .bounds(x + 154, y + 45, 15, 20)
+                .build()
+        );
 
         bcl_buttons.forEach(this::addWidget);
     }
 
     @Inject(method = "renderLabels", at = @At("HEAD"))
     protected void be_renderForeground(
-            GuiGraphics guiGraphics,
-            int mouseX,
-            int mouseY,
-            CallbackInfo info
+        GuiGraphics guiGraphics,
+        int mouseX,
+        int mouseY,
+        CallbackInfo info
     ) {
-        bcl_buttons.forEach(button -> button.render(guiGraphics, mouseX, mouseY, 0));
+        bcl_buttons.forEach(button ->
+            button.render(guiGraphics, mouseX, mouseY, 0)
+        );
     }
 
     @Inject(method = "slotChanged", at = @At("HEAD"), cancellable = true)
-    public void be_onSlotUpdate(AbstractContainerMenu handler, int slotId, ItemStack stack, CallbackInfo info) {
-        AnvilScreenHandlerExtended anvilHandler = (AnvilScreenHandlerExtended) handler;
+    public void be_onSlotUpdate(
+        AbstractContainerMenu handler,
+        int slotId,
+        ItemStack stack,
+        CallbackInfo info
+    ) {
+        AnvilScreenHandlerExtended anvilHandler =
+            (AnvilScreenHandlerExtended) handler;
         if (anvilHandler.bcl_getCurrentRecipe() != null) {
             if (anvilHandler.bcl_getRecipes().size() > 1) {
                 bcl_buttons.forEach(button -> button.visible = true);
@@ -117,7 +132,6 @@ public class AnvilScreenMixin extends ItemCombinerScreen<AnvilMenu> {
         ((AnvilScreenHandlerExtended) menu).be_previousRecipe();
     }
 
-
     @Intrinsic(displace = true)
     //@Override
     public boolean bcl$mouseClicked(double mouseX, double mouseY, int button) {
@@ -126,7 +140,10 @@ public class AnvilScreenMixin extends ItemCombinerScreen<AnvilMenu> {
                 if (elem.visible && elem.mouseClicked(mouseX, mouseY, button)) {
                     if (minecraft.gameMode != null) {
                         int i = bcl_buttons.indexOf(elem);
-                        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, i);
+                        minecraft.gameMode.handleInventoryButtonClick(
+                            menu.containerId,
+                            i
+                        );
                         return true;
                     }
                 }

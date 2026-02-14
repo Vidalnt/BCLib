@@ -1,14 +1,12 @@
 package org.betterx.bclib.items;
 
-import de.ambertation.wunderlib.math.Bounds;
-import org.betterx.bclib.client.models.ModelsHelper;
-import org.betterx.bclib.commands.PlaceCommand;
-import org.betterx.bclib.interfaces.AirSelectionItem;
-import org.betterx.bclib.interfaces.ItemModelProvider;
-import org.betterx.bclib.util.BlocksHelper;
-import org.betterx.ui.ColorUtil;
-
 import com.mojang.logging.LogUtils;
+import de.ambertation.wunderlib.math.Bounds;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Supplier;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
@@ -19,8 +17,8 @@ import net.minecraft.data.worldgen.Pools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
@@ -38,30 +36,38 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.loot.LootTable;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
+import org.betterx.bclib.client.models.ModelsHelper;
+import org.betterx.bclib.commands.PlaceCommand;
+import org.betterx.bclib.interfaces.AirSelectionItem;
+import org.betterx.bclib.interfaces.ItemModelProvider;
+import org.betterx.bclib.util.BlocksHelper;
+import org.betterx.ui.ColorUtil;
 import org.slf4j.Logger;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Supplier;
+public class DebugDataItem
+    extends Item
+    implements ItemModelProvider, AirSelectionItem
+{
 
-public class DebugDataItem extends Item implements ItemModelProvider, AirSelectionItem {
     private static final Logger LOGGER = LogUtils.getLogger();
-    public static final ResourceLocation DEFAULT_ICON = ResourceLocation.withDefaultNamespace("stick");
+    public static final Identifier DEFAULT_ICON =
+        Identifier.withDefaultNamespace("stick");
 
     public static InteractionResult fillStructureEntityBounds(
-            UseOnContext useOnContext,
-            BlockEntity entity,
-            BlockStatePredicate predicate,
-            BlockState newState,
-            boolean floodFill
+        UseOnContext useOnContext,
+        BlockEntity entity,
+        BlockStatePredicate predicate,
+        BlockState newState,
+        boolean floodFill
     ) {
         if (entity instanceof StructureBlockEntity e) {
             if (floodFill) {
-                floodFillStructureEntityBounds(useOnContext, e, predicate, newState);
+                floodFillStructureEntityBounds(
+                    useOnContext,
+                    e,
+                    predicate,
+                    newState
+                );
             } else {
                 fillStructureEntityBounds(useOnContext, e, predicate, newState);
             }
@@ -71,14 +77,16 @@ public class DebugDataItem extends Item implements ItemModelProvider, AirSelecti
     }
 
     public static void fillStructureEntityBounds(
-            UseOnContext useOnContext,
-            StructureBlockEntity entity,
-            BlockStatePredicate predicate,
-            BlockState newState
+        UseOnContext useOnContext,
+        StructureBlockEntity entity,
+        BlockStatePredicate predicate,
+        BlockState newState
     ) {
         final var level = useOnContext.getLevel();
         final Vec3i size = entity.getStructureSize();
-        final BlockPos pos = useOnContext.getClickedPos().offset(entity.getStructurePos());
+        final BlockPos pos = useOnContext
+            .getClickedPos()
+            .offset(entity.getStructurePos());
 
         for (int x = 0; x < size.getX(); x++) {
             for (int y = 0; y < size.getY(); y++) {
@@ -87,9 +95,9 @@ public class DebugDataItem extends Item implements ItemModelProvider, AirSelecti
                     var state = level.getBlockState(blockPos);
                     if (predicate.test(state)) {
                         level.setBlock(
-                                blockPos,
-                                newState,
-                                BlocksHelper.SET_SILENT
+                            blockPos,
+                            newState,
+                            BlocksHelper.SET_SILENT
                         );
                     }
                 }
@@ -98,35 +106,35 @@ public class DebugDataItem extends Item implements ItemModelProvider, AirSelecti
     }
 
     public static void floodFillStructureEntityBounds(
-            UseOnContext useOnContext,
-            StructureBlockEntity entity,
-            BlockStatePredicate predicate,
-            BlockState newState
+        UseOnContext useOnContext,
+        StructureBlockEntity entity,
+        BlockStatePredicate predicate,
+        BlockState newState
     ) {
         final Bounds bounds = Bounds.of(
-                useOnContext.getClickedPos().offset(entity.getStructurePos()),
-                entity.getStructureSize()
+            useOnContext.getClickedPos().offset(entity.getStructurePos()),
+            entity.getStructureSize()
         );
 
         floodFillStructureEntityBounds(
-                useOnContext.getLevel(),
-                bounds,
-                bounds.max.toBlockPos(),
-                entity,
-                predicate,
-                newState,
-                new HashSet<>()
+            useOnContext.getLevel(),
+            bounds,
+            bounds.max.toBlockPos(),
+            entity,
+            predicate,
+            newState,
+            new HashSet<>()
         );
     }
 
     private static void floodFillStructureEntityBounds(
-            Level level,
-            Bounds bounds,
-            BlockPos pos,
-            StructureBlockEntity entity,
-            BlockStatePredicate predicate,
-            BlockState newState,
-            Set<BlockPos> visited
+        Level level,
+        Bounds bounds,
+        BlockPos pos,
+        StructureBlockEntity entity,
+        BlockStatePredicate predicate,
+        BlockState newState,
+        Set<BlockPos> visited
     ) {
         if (!bounds.isInside(pos)) return;
         if (visited.contains(pos)) return;
@@ -135,12 +143,60 @@ public class DebugDataItem extends Item implements ItemModelProvider, AirSelecti
         if (predicate.test(level.getBlockState(pos))) {
             level.setBlock(pos, newState, BlocksHelper.SET_SILENT);
 
-            floodFillStructureEntityBounds(level, bounds, pos.above(), entity, predicate, newState, visited);
-            floodFillStructureEntityBounds(level, bounds, pos.below(), entity, predicate, newState, visited);
-            floodFillStructureEntityBounds(level, bounds, pos.north(), entity, predicate, newState, visited);
-            floodFillStructureEntityBounds(level, bounds, pos.east(), entity, predicate, newState, visited);
-            floodFillStructureEntityBounds(level, bounds, pos.south(), entity, predicate, newState, visited);
-            floodFillStructureEntityBounds(level, bounds, pos.west(), entity, predicate, newState, visited);
+            floodFillStructureEntityBounds(
+                level,
+                bounds,
+                pos.above(),
+                entity,
+                predicate,
+                newState,
+                visited
+            );
+            floodFillStructureEntityBounds(
+                level,
+                bounds,
+                pos.below(),
+                entity,
+                predicate,
+                newState,
+                visited
+            );
+            floodFillStructureEntityBounds(
+                level,
+                bounds,
+                pos.north(),
+                entity,
+                predicate,
+                newState,
+                visited
+            );
+            floodFillStructureEntityBounds(
+                level,
+                bounds,
+                pos.east(),
+                entity,
+                predicate,
+                newState,
+                visited
+            );
+            floodFillStructureEntityBounds(
+                level,
+                bounds,
+                pos.south(),
+                entity,
+                predicate,
+                newState,
+                visited
+            );
+            floodFillStructureEntityBounds(
+                level,
+                bounds,
+                pos.west(),
+                entity,
+                predicate,
+                newState,
+                visited
+            );
         }
     }
 
@@ -151,33 +207,44 @@ public class DebugDataItem extends Item implements ItemModelProvider, AirSelecti
     public interface DebugEntityInteraction extends DebugInteraction {
         @Override
         default InteractionResult use(UseOnContext useOnContext) {
-            var entity = useOnContext.getLevel().getBlockEntity(useOnContext.getClickedPos());
+            var entity = useOnContext
+                .getLevel()
+                .getBlockEntity(useOnContext.getClickedPos());
             if (entity != null) {
-
                 return use(useOnContext.getPlayer(), entity, useOnContext);
             }
             return InteractionResult.FAIL;
         }
 
-        InteractionResult use(Player player, BlockEntity entity, UseOnContext useOnContext);
+        InteractionResult use(
+            Player player,
+            BlockEntity entity,
+            UseOnContext useOnContext
+        );
     }
 
     protected final DebugInteraction interaction;
-    protected final ResourceLocation icon;
+    protected final Identifier icon;
     public final boolean placeInAir;
 
-    public DebugDataItem(DebugEntityInteraction interaction, boolean placeInAir, ResourceLocation icon) {
+    public DebugDataItem(
+        DebugEntityInteraction interaction,
+        boolean placeInAir,
+        Identifier icon
+    ) {
         this((DebugInteraction) interaction, placeInAir, icon);
     }
 
-    public DebugDataItem(DebugInteraction interaction, boolean placeInAir, ResourceLocation icon) {
+    public DebugDataItem(
+        DebugInteraction interaction,
+        boolean placeInAir,
+        Identifier icon
+    ) {
         super(new Item.Properties().fireResistant().stacksTo(1));
-
         this.interaction = interaction;
         this.icon = (icon == null ? DEFAULT_ICON : icon);
         this.placeInAir = placeInAir;
     }
-
 
     public boolean renderAirSelection() {
         return placeInAir;
@@ -188,10 +255,9 @@ public class DebugDataItem extends Item implements ItemModelProvider, AirSelecti
         return true;
     }
 
-
     @Override
     @Environment(EnvType.CLIENT)
-    public BlockModel getItemModel(ResourceLocation resourceLocation) {
+    public BlockModel getItemModel(Identifier resourceLocation) {
         return ModelsHelper.createItemModel(icon);
     }
 
@@ -208,7 +274,10 @@ public class DebugDataItem extends Item implements ItemModelProvider, AirSelecti
     }
 
     public static void message(Player player, String text, int color) {
-        message(player, Component.literal(text).withStyle(Style.EMPTY.withColor(color)));
+        message(
+            player,
+            Component.literal(text).withStyle(Style.EMPTY.withColor(color))
+        );
     }
 
     public static void message(Player player, Component component) {
@@ -219,210 +288,261 @@ public class DebugDataItem extends Item implements ItemModelProvider, AirSelecti
 
     @Override
     public boolean canDestroyBlock(
-            ItemStack itemStack,
-            BlockState blockState,
-            Level level,
-            BlockPos blockPos,
-            LivingEntity livingEntity
+        ItemStack itemStack,
+        BlockState blockState,
+        Level level,
+        BlockPos blockPos,
+        LivingEntity livingEntity
     ) {
         return true;
     }
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand interactionHand) {
+    public InteractionResult use(
+        Level level,
+        Player player,
+        InteractionHand interactionHand
+    ) {
         return AirSelectionItem.super.useOnAir(level, player, interactionHand);
     }
 
-    public static DebugDataItem forLootTable(ResourceKey<LootTable> table, Item icon) {
-        ResourceLocation iconId = BuiltInRegistries.ITEM.getKey(icon);
+    public static DebugDataItem forLootTable(
+        ResourceKey<LootTable> table,
+        Item icon
+    ) {
+        Identifier iconId = BuiltInRegistries.ITEM.getKey(icon);
         return new DebugDataItem(
-                (player, entity, ctx) -> {
-                    try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(
-                            entity.problemPath(), LOGGER
-                    )) {
-                        CompoundTag tag = entity.saveWithoutMetadata(player.registryAccess());
-                        tag.remove(RandomizableContainerBlockEntity.LOOT_TABLE_SEED_TAG);
-                        tag.remove("Items");
+            (player, entity, ctx) -> {
+                try (
+                    ProblemReporter.ScopedCollector scopedCollector =
+                        new ProblemReporter.ScopedCollector(
+                            entity.problemPath(),
+                            LOGGER
+                        )
+                ) {
+                    CompoundTag tag = entity.saveWithoutMetadata(
+                        player.registryAccess()
+                    );
+                    tag.remove(
+                        RandomizableContainerBlockEntity.LOOT_TABLE_SEED_TAG
+                    );
+                    tag.remove("Items");
 
-                        tag.putString(RandomizableContainerBlockEntity.LOOT_TABLE_TAG, table.location().toString());
+                    tag.putString(
+                        RandomizableContainerBlockEntity.LOOT_TABLE_TAG,
+                        table.location().toString()
+                    );
 
-                        entity.loadCustomOnly(TagValueInput.create(scopedCollector, player.registryAccess(), tag));
-                        message(player, "Did set Loot Table to " + table.toString());
-                        return InteractionResult.SUCCESS;
-                    }
-                },
-                false,
-                iconId
+                    entity.loadCustomOnly(
+                        TagValueInput.create(
+                            scopedCollector,
+                            player.registryAccess(),
+                            tag
+                        )
+                    );
+                    message(
+                        player,
+                        "Did set Loot Table to " + table.toString()
+                    );
+                    return InteractionResult.SUCCESS;
+                }
+            },
+            false,
+            iconId
         );
     }
 
-    public static DebugDataItem forSpawner(Supplier<CompoundTag> tag, Item icon) {
-        ResourceLocation iconId = BuiltInRegistries.ITEM.getKey(icon);
+    public static DebugDataItem forSpawner(
+        Supplier<CompoundTag> tag,
+        Item icon
+    ) {
+        Identifier iconId = BuiltInRegistries.ITEM.getKey(icon);
         return new DebugDataItem(
-                (player, entity, ctx) -> {
-                    if (entity instanceof SpawnerBlockEntity) {
-                        try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(
-                                entity.problemPath(), LOGGER
-                        )) {
-                            entity.loadCustomOnly(TagValueInput.create(
-                                    scopedCollector,
-                                    player.registryAccess(),
-                                    tag.get()
-                            ));
-                            message(player, "Did set Data to " + tag.toString());
-                            return InteractionResult.SUCCESS;
-                        }
+            (player, entity, ctx) -> {
+                if (entity instanceof SpawnerBlockEntity) {
+                    try (
+                        ProblemReporter.ScopedCollector scopedCollector =
+                            new ProblemReporter.ScopedCollector(
+                                entity.problemPath(),
+                                LOGGER
+                            )
+                    ) {
+                        entity.loadCustomOnly(
+                            TagValueInput.create(
+                                scopedCollector,
+                                player.registryAccess(),
+                                tag.get()
+                            )
+                        );
+                        message(player, "Did set Data to " + tag.toString());
+                        return InteractionResult.SUCCESS;
                     }
-                    return InteractionResult.FAIL;
-                },
-                false,
-                iconId
+                }
+                return InteractionResult.FAIL;
+            },
+            false,
+            iconId
         );
     }
 
     public static DebugDataItem forSteetJigSaw(
-            String modID,
-            ResourceKey<StructureTemplatePool> pool,
-            Item icon
+        String modID,
+        ResourceKey<StructureTemplatePool> pool,
+        Item icon
     ) {
         return forJigsaw(
-                pool == null ? Pools.EMPTY : pool,
-                ResourceLocation.fromNamespaceAndPath(modID, "street"),
-                JigsawBlockEntity.JointType.ALIGNED,
-                null,
-                null,
-                icon
+            pool == null ? Pools.EMPTY : pool,
+            Identifier.fromNamespaceAndPath(modID, "street"),
+            JigsawBlockEntity.JointType.ALIGNED,
+            null,
+            null,
+            icon
         );
     }
 
     public static DebugDataItem forHouseEntranceJigSaw(
-            String modID,
-            ResourceKey<StructureTemplatePool> pool,
-            Item icon
+        String modID,
+        ResourceKey<StructureTemplatePool> pool,
+        Item icon
     ) {
         return forJigsaw(
-                pool == null ? Pools.EMPTY : pool,
-                pool == null
-                        ? ResourceLocation.fromNamespaceAndPath(modID, "building_entrance")
-                        : ResourceLocation.fromNamespaceAndPath(modID, "street_entrance"),
-                pool == null
-                        ? ResourceLocation.fromNamespaceAndPath(modID, "street_entrance")
-                        : ResourceLocation.fromNamespaceAndPath(modID, "building_entrance"),
-                JigsawBlockEntity.JointType.ALIGNED,
-                null,
-                null,
-                icon
+            pool == null ? Pools.EMPTY : pool,
+            pool == null
+                ? Identifier.fromNamespaceAndPath(modID, "building_entrance")
+                : Identifier.fromNamespaceAndPath(modID, "street_entrance"),
+            pool == null
+                ? Identifier.fromNamespaceAndPath(modID, "street_entrance")
+                : Identifier.fromNamespaceAndPath(modID, "building_entrance"),
+            JigsawBlockEntity.JointType.ALIGNED,
+            null,
+            null,
+            icon
         );
     }
 
     public static DebugDataItem forDecorationJigSaw(
-            String modID,
-            ResourceKey<StructureTemplatePool> pool,
-            Item icon
+        String modID,
+        ResourceKey<StructureTemplatePool> pool,
+        Item icon
     ) {
         return forJigsaw(
-                pool == null ? Pools.EMPTY : pool,
-                pool == null
-                        ? ResourceLocation.fromNamespaceAndPath(modID, "side")
-                        : ResourceLocation.fromNamespaceAndPath(modID, "side_street"),
-                pool == null
-                        ? ResourceLocation.fromNamespaceAndPath(modID, "side_street")
-                        : ResourceLocation.fromNamespaceAndPath(modID, "side"),
-                JigsawBlockEntity.JointType.ALIGNED,
-                null,
-                null,
-                icon
+            pool == null ? Pools.EMPTY : pool,
+            pool == null
+                ? Identifier.fromNamespaceAndPath(modID, "side")
+                : Identifier.fromNamespaceAndPath(modID, "side_street"),
+            pool == null
+                ? Identifier.fromNamespaceAndPath(modID, "side_street")
+                : Identifier.fromNamespaceAndPath(modID, "side"),
+            JigsawBlockEntity.JointType.ALIGNED,
+            null,
+            null,
+            icon
         );
     }
 
     public static DebugDataItem forStreetDecorationJigSaw(
-            String modID,
-            ResourceKey<StructureTemplatePool> pool,
-            Item icon
+        String modID,
+        ResourceKey<StructureTemplatePool> pool,
+        Item icon
     ) {
         return forJigsaw(
-                pool == null ? Pools.EMPTY : pool,
-                pool == null
-                        ? ResourceLocation.fromNamespaceAndPath(modID, "bottom")
-                        : ResourceLocation.fromNamespaceAndPath(modID, "bottom_street"),
-                pool == null
-                        ? ResourceLocation.fromNamespaceAndPath(modID, "bottom_street")
-                        : ResourceLocation.fromNamespaceAndPath(modID, "bottom"),
-                JigsawBlockEntity.JointType.ROLLABLE,
-                null,
-                pool == null ? FrontAndTop.DOWN_WEST : FrontAndTop.UP_WEST,
-                icon
+            pool == null ? Pools.EMPTY : pool,
+            pool == null
+                ? Identifier.fromNamespaceAndPath(modID, "bottom")
+                : Identifier.fromNamespaceAndPath(modID, "bottom_street"),
+            pool == null
+                ? Identifier.fromNamespaceAndPath(modID, "bottom_street")
+                : Identifier.fromNamespaceAndPath(modID, "bottom"),
+            JigsawBlockEntity.JointType.ROLLABLE,
+            null,
+            pool == null ? FrontAndTop.DOWN_WEST : FrontAndTop.UP_WEST,
+            icon
         );
     }
 
     public static DebugDataItem forJigsaw(
-            ResourceKey<StructureTemplatePool> pool,
-            ResourceLocation connector,
-            JigsawBlockEntity.JointType type,
-            BlockState finalState,
-            FrontAndTop forceOrientation,
-            Item icon
+        ResourceKey<StructureTemplatePool> pool,
+        Identifier connector,
+        JigsawBlockEntity.JointType type,
+        BlockState finalState,
+        FrontAndTop forceOrientation,
+        Item icon
     ) {
-        return forJigsaw(pool, connector, connector, type, finalState, forceOrientation, icon);
+        return forJigsaw(
+            pool,
+            connector,
+            connector,
+            type,
+            finalState,
+            forceOrientation,
+            icon
+        );
     }
 
     public static DebugDataItem forJigsaw(
-            ResourceKey<StructureTemplatePool> pool,
-            ResourceLocation name,
-            ResourceLocation target,
-            JigsawBlockEntity.JointType type,
-            BlockState finalState,
-            FrontAndTop forceOrientation,
-            Item icon
+        ResourceKey<StructureTemplatePool> pool,
+        Identifier name,
+        Identifier target,
+        JigsawBlockEntity.JointType type,
+        BlockState finalState,
+        FrontAndTop forceOrientation,
+        Item icon
     ) {
-        ResourceLocation iconId = BuiltInRegistries.ITEM.getKey(icon);
+        Identifier iconId = BuiltInRegistries.ITEM.getKey(icon);
         return new DebugDataItem(
-                (ctx) -> {
-                    final var player = ctx.getPlayer();
-                    final var level = ctx.getLevel();
-                    final var pos = ctx.getClickedPos();
-                    var state = level.getBlockState(pos);
-                    var entity = level.getBlockEntity(pos);
-                    var targetState = finalState;
-                    if (!(entity instanceof JigsawBlockEntity)) {
-                        if (targetState == null) {
-
-                            targetState = state.isAir() ? Blocks.STRUCTURE_VOID.defaultBlockState() : state;
-                        }
-
-                        state = Blocks.JIGSAW.defaultBlockState();
-                        level.setBlock(pos, state, BlocksHelper.SET_SILENT);
-                        entity = level.getBlockEntity(pos);
-
-                        message(player, "Created JigSaw at " + pos.toString());
+            ctx -> {
+                final var player = ctx.getPlayer();
+                final var level = ctx.getLevel();
+                final var pos = ctx.getClickedPos();
+                var state = level.getBlockState(pos);
+                var entity = level.getBlockEntity(pos);
+                var targetState = finalState;
+                if (!(entity instanceof JigsawBlockEntity)) {
+                    if (targetState == null) {
+                        targetState = state.isAir()
+                            ? Blocks.STRUCTURE_VOID.defaultBlockState()
+                            : state;
                     }
 
-                    if (entity instanceof JigsawBlockEntity e) {
-                        if (forceOrientation == null) {
-                            state = PlaceCommand.setJigsawOrientation(
-                                    JigsawBlockEntity.JointType.ROLLABLE != type,
-                                    player, pos, state
-                            );
-                        } else {
-                            state = state.setValue(JigsawBlock.ORIENTATION, forceOrientation);
-                        }
-                        level.setBlock(pos, state, BlocksHelper.SET_SILENT);
+                    state = Blocks.JIGSAW.defaultBlockState();
+                    level.setBlock(pos, state, BlocksHelper.SET_SILENT);
+                    entity = level.getBlockEntity(pos);
 
-                        if (pool != null) e.setName(name);
-                        if (pool != null) e.setTarget(target);
-                        if (pool != null) e.setPool(pool);
-                        if (targetState != null) e.setFinalState(BlockStateParser.serialize(targetState));
-                        e.setJoint(type);
+                    message(player, "Created JigSaw at " + pos.toString());
+                }
 
-
-                        message(player, "Did update Jigsaw at " + pos.toString());
-
-                        return InteractionResult.SUCCESS;
+                if (entity instanceof JigsawBlockEntity e) {
+                    if (forceOrientation == null) {
+                        state = PlaceCommand.setJigsawOrientation(
+                            JigsawBlockEntity.JointType.ROLLABLE != type,
+                            player,
+                            pos,
+                            state
+                        );
+                    } else {
+                        state = state.setValue(
+                            JigsawBlock.ORIENTATION,
+                            forceOrientation
+                        );
                     }
-                    return InteractionResult.FAIL;
-                },
-                true,
-                iconId
+                    level.setBlock(pos, state, BlocksHelper.SET_SILENT);
+
+                    if (pool != null) e.setName(name);
+                    if (pool != null) e.setTarget(target);
+                    if (pool != null) e.setPool(pool);
+                    if (targetState != null) e.setFinalState(
+                        BlockStateParser.serialize(targetState)
+                    );
+                    e.setJoint(type);
+
+                    message(player, "Did update Jigsaw at " + pos.toString());
+
+                    return InteractionResult.SUCCESS;
+                }
+                return InteractionResult.FAIL;
+            },
+            true,
+            iconId
         );
     }
 

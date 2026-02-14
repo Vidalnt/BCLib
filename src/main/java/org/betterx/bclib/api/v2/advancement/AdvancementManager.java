@@ -1,22 +1,18 @@
 package org.betterx.bclib.api.v2.advancement;
 
-
-import org.betterx.wover.complex.api.equipment.ArmorSlot;
-import org.betterx.wover.complex.api.equipment.EquipmentSet;
-import org.betterx.wover.complex.api.equipment.ToolSlot;
-import org.betterx.wover.sets.api.blocks.SlotType;
-import org.betterx.wover.sets.api.blocks.WoodenBlockSet;
-
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import net.minecraft.advancements.*;
-import net.minecraft.advancements.critereon.*;
+import net.minecraft.advancements.criterion.*;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -28,35 +24,44 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.storage.loot.LootTable;
-
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import org.betterx.wover.complex.api.equipment.ArmorSlot;
+import org.betterx.wover.complex.api.equipment.EquipmentSet;
+import org.betterx.wover.complex.api.equipment.ToolSlot;
+import org.betterx.wover.sets.api.blocks.SlotType;
+import org.betterx.wover.sets.api.blocks.WoodenBlockSet;
 
 public class AdvancementManager {
+
     static class OrderedBuilder extends Advancement.Builder {
+
         OrderedBuilder() {
             super();
         }
     }
 
-    private static final Map<ResourceLocation, Advancement.Builder> ADVANCEMENTS = new LinkedHashMap<>();
+    private static final Map<Identifier, Advancement.Builder> ADVANCEMENTS =
+        new LinkedHashMap<>();
 
-    public static void register(ResourceLocation id, Advancement.Builder builder) {
+    public static void register(Identifier id, Advancement.Builder builder) {
         ADVANCEMENTS.put(id, builder);
     }
 
-    public static void registerAllDataGen(List<String> namespaces, Consumer<AdvancementHolder> consumer) {
+    public static void registerAllDataGen(
+        List<String> namespaces,
+        Consumer<AdvancementHolder> consumer
+    ) {
         final AdvancementHolder ROOT_RECIPE = Advancement.Builder.advancement()
-                                                                 .addCriterion(
-                                                                         "impossible",
-                                                                         CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance())
-                                                                 )
-                                                                 .build(RecipeBuilder.ROOT_RECIPE_ADVANCEMENT);
-        final Map<ResourceLocation, AdvancementHolder> BUILT = new HashMap<>();
+            .addCriterion(
+                "impossible",
+                CriteriaTriggers.IMPOSSIBLE.createCriterion(
+                    new ImpossibleTrigger.TriggerInstance()
+                )
+            )
+            .build(RecipeBuilder.ROOT_RECIPE_ADVANCEMENT);
+        final Map<Identifier, AdvancementHolder> BUILT = new HashMap<>();
 
         for (var entry : ADVANCEMENTS.entrySet()) {
-            final ResourceLocation loc = entry.getKey();
+            final Identifier loc = entry.getKey();
             if (namespaces == null || namespaces.contains(loc.getNamespace())) {
                 final Advancement.Builder builder = entry.getValue();
                 final AdvancementHolder adv = builder.build(loc);
@@ -66,10 +71,11 @@ public class AdvancementManager {
         }
     }
 
-
     public static class RewardsBuilder {
+
         private final Builder calle;
-        private final AdvancementRewards.Builder builder = new AdvancementRewards.Builder();
+        private final AdvancementRewards.Builder builder =
+            new AdvancementRewards.Builder();
 
         private RewardsBuilder(Builder calle) {
             this.calle = calle;
@@ -80,19 +86,21 @@ public class AdvancementManager {
             return this;
         }
 
-
-        public RewardsBuilder addLootTable(ResourceKey<LootTable> resourceLocation) {
+        public RewardsBuilder addLootTable(
+            ResourceKey<LootTable> resourceLocation
+        ) {
             builder.addLootTable(resourceLocation);
             return this;
         }
 
-
-        public RewardsBuilder addRecipe(ResourceKey<Recipe<?>> resourceLocation) {
+        public RewardsBuilder addRecipe(
+            ResourceKey<Recipe<?>> resourceLocation
+        ) {
             builder.addRecipe(resourceLocation);
             return this;
         }
 
-        public RewardsBuilder runs(ResourceLocation resourceLocation) {
+        public RewardsBuilder runs(Identifier resourceLocation) {
             builder.runs(resourceLocation);
             return this;
         }
@@ -106,26 +114,35 @@ public class AdvancementManager {
     public enum AdvancementType {
         REGULAR,
         RECIPE_DECORATIONS,
-        RECIPE_TOOL
+        RECIPE_TOOL,
     }
 
     public static class Builder {
-        private static final ThreadLocal<DisplayBuilder> DISPLAY_BUILDER = ThreadLocal.withInitial(DisplayBuilder::new);
-        private static final ResourceLocation RECIPES_ROOT = RecipeBuilder.ROOT_RECIPE_ADVANCEMENT;
+
+        private static final ThreadLocal<DisplayBuilder> DISPLAY_BUILDER =
+            ThreadLocal.withInitial(DisplayBuilder::new);
+        private static final Identifier RECIPES_ROOT =
+            RecipeBuilder.ROOT_RECIPE_ADVANCEMENT;
 
         private final Advancement.Builder builder = new OrderedBuilder();
-        private final ResourceLocation id;
+        private final Identifier id;
         private final AdvancementType type;
         private boolean canBuild = true;
 
         @SuppressWarnings("removal")
-        private Builder(ResourceLocation id, AdvancementType type) {
-            ResourceLocation ID;
+        private Builder(Identifier id, AdvancementType type) {
+            Identifier ID;
             if (type == AdvancementType.RECIPE_DECORATIONS) {
-                ID = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "recipes/decorations/" + id.getPath());
+                ID = Identifier.fromNamespaceAndPath(
+                    id.getNamespace(),
+                    "recipes/decorations/" + id.getPath()
+                );
                 builder.parent(RECIPES_ROOT); //will be root by default
             } else if (type == AdvancementType.RECIPE_TOOL) {
-                ID = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "recipes/tools/" + id.getPath());
+                ID = Identifier.fromNamespaceAndPath(
+                    id.getNamespace(),
+                    "recipes/tools/" + id.getPath()
+                );
                 builder.parent(RECIPES_ROOT); //will be root by default
             } else {
                 ID = id;
@@ -138,11 +155,11 @@ public class AdvancementManager {
             return new Builder(builder.id, builder.type);
         }
 
-        public static Builder create(ResourceLocation id) {
+        public static Builder create(Identifier id) {
             return new Builder(id, AdvancementType.REGULAR);
         }
 
-        public static Builder create(ResourceLocation id, AdvancementType type) {
+        public static Builder create(Identifier id, AdvancementType type) {
             return new Builder(id, type);
         }
 
@@ -159,20 +176,21 @@ public class AdvancementManager {
         }
 
         public static Builder create(ItemStack icon, AdvancementType type) {
-            return create(
-                    icon, type, (displayBuilder) -> {
-                    }
-            );
+            return create(icon, type, displayBuilder -> {});
         }
 
-        public static Builder create(Item icon, AdvancementType type, Consumer<DisplayBuilder> displayAdapter) {
+        public static Builder create(
+            Item icon,
+            AdvancementType type,
+            Consumer<DisplayBuilder> displayAdapter
+        ) {
             return create(new ItemStack(icon), type, displayAdapter);
         }
 
         public static Builder create(
-                ItemStack icon,
-                AdvancementType type,
-                Consumer<DisplayBuilder> displayAdapter
+            ItemStack icon,
+            AdvancementType type,
+            Consumer<DisplayBuilder> displayAdapter
         ) {
             var id = BuiltInRegistries.ITEM.getKey(icon.getItem());
             boolean canBuild = true;
@@ -181,12 +199,13 @@ public class AdvancementManager {
                 id = BuiltInRegistries.ITEM.getDefaultKey();
             }
 
-            String baseName = "advancements." + id.getNamespace() + "." + id.getPath() + ".";
+            String baseName =
+                "advancements." + id.getNamespace() + "." + id.getPath() + ".";
             Builder b = new Builder(id, type);
             var displayBuilder = b.startDisplay(
-                    icon,
-                    Component.translatable(baseName + "title"),
-                    Component.translatable(baseName + "description")
+                icon,
+                Component.translatable(baseName + "title"),
+                Component.translatable(baseName + "description")
             );
             if (displayAdapter != null) displayAdapter.accept(displayBuilder);
             b = displayBuilder.endDisplay();
@@ -201,32 +220,33 @@ public class AdvancementManager {
 
         @SuppressWarnings("removal")
         @Deprecated(forRemoval = true)
-        public Builder parent(ResourceLocation resourceLocation) {
+        public Builder parent(Identifier resourceLocation) {
             builder.parent(resourceLocation);
             return this;
         }
 
         public DisplayBuilder startDisplay(ItemLike icon) {
-            String baseName = "advancements." + id.getNamespace() + "." + id.getPath() + ".";
+            String baseName =
+                "advancements." + id.getNamespace() + "." + id.getPath() + ".";
             return startDisplay(
-                    icon,
-                    Component.translatable(baseName + "title"),
-                    Component.translatable(baseName + "description")
+                icon,
+                Component.translatable(baseName + "title"),
+                Component.translatable(baseName + "description")
             );
         }
 
         public DisplayBuilder startDisplay(
-                ItemLike icon,
-                Component title,
-                Component description
+            ItemLike icon,
+            Component title,
+            Component description
         ) {
             return startDisplay(new ItemStack(icon), title, description);
         }
 
         public DisplayBuilder startDisplay(
-                ItemStack icon,
-                Component title,
-                Component description
+            ItemStack icon,
+            Component title,
+            Component description
         ) {
             if (icon == null) {
                 canBuild = false;
@@ -248,9 +268,11 @@ public class AdvancementManager {
         public Builder awardRecipe(ItemLike... items) {
             RewardsBuilder rewardBuilder = startReward();
             for (ItemLike item : items) {
-                ResourceLocation id = BuiltInRegistries.ITEM.getKey(item.asItem());
+                Identifier id = BuiltInRegistries.ITEM.getKey(item.asItem());
                 if (id == null) continue;
-                rewardBuilder.addRecipe(ResourceKey.create(Registries.RECIPE, id));
+                rewardBuilder.addRecipe(
+                    ResourceKey.create(Registries.RECIPE, id)
+                );
             }
             return rewardBuilder.endReward();
         }
@@ -269,11 +291,14 @@ public class AdvancementManager {
         }
 
         public <T extends CriterionTriggerInstance> Builder addCriterion(
-                String string,
-                CriterionTrigger<T> criterionTrigger,
-                T criterionTriggerInstance
+            String string,
+            CriterionTrigger<T> criterionTrigger,
+            T criterionTriggerInstance
         ) {
-            builder.addCriterion(string, new Criterion(criterionTrigger, criterionTriggerInstance));
+            builder.addCriterion(
+                string,
+                new Criterion(criterionTrigger, criterionTriggerInstance)
+            );
             return this;
         }
 
@@ -282,95 +307,117 @@ public class AdvancementManager {
             return this;
         }
 
-        public Builder addAtStructureCriterion(String name, Holder<Structure> structure) {
-            return addCriterion(
-                    name,
-                    PlayerTrigger
-                            .TriggerInstance
-                            .located(
-                                    LocationPredicate.Builder.inStructure(structure)
-                            )
-            );
-        }
-
-        public <C extends RecipeInput, T extends Recipe<C>> Builder addRecipeUnlockCriterion(
-                String name,
-                RecipeHolder<T> recipe
+        public Builder addAtStructureCriterion(
+            String name,
+            Holder<Structure> structure
         ) {
             return addCriterion(
-                    name,
-                    RecipeUnlockedTrigger.unlocked(recipe.id())
+                name,
+                PlayerTrigger.TriggerInstance.located(
+                    LocationPredicate.Builder.inStructure(structure)
+                )
             );
         }
 
-        public Builder addInventoryChangedCriterion(String name, ItemLike... items) {
+        public <
+            C extends RecipeInput,
+            T extends Recipe<C>
+        > Builder addRecipeUnlockCriterion(
+            String name,
+            RecipeHolder<T> recipe
+        ) {
             return addCriterion(
-                    name,
-                    InventoryChangeTrigger.TriggerInstance.hasItems(items)
+                name,
+                RecipeUnlockedTrigger.unlocked(recipe.id())
             );
         }
 
-        public Builder addInventoryChangedAnyCriterion(String name, ItemLike... items) {
+        public Builder addInventoryChangedCriterion(
+            String name,
+            ItemLike... items
+        ) {
+            return addCriterion(
+                name,
+                InventoryChangeTrigger.TriggerInstance.hasItems(items)
+            );
+        }
+
+        public Builder addInventoryChangedAnyCriterion(
+            String name,
+            ItemLike... items
+        ) {
             final Criterion<InventoryChangeTrigger.TriggerInstance> t =
-                    InventoryChangeTrigger.TriggerInstance.hasItems(items);
+                InventoryChangeTrigger.TriggerInstance.hasItems(items);
 
             return addCriterion(name, t);
         }
 
-        public Builder addInventoryChangedCriterion(HolderLookup<Item> itemLookup, String name, TagKey<Item> tag) {
+        public Builder addInventoryChangedCriterion(
+            HolderLookup<Item> itemLookup,
+            String name,
+            TagKey<Item> tag
+        ) {
             final Criterion<InventoryChangeTrigger.TriggerInstance> t =
-                    InventoryChangeTrigger.TriggerInstance.hasItems(
-                            ItemPredicate.Builder.item().of(itemLookup, tag)
-                    );
+                InventoryChangeTrigger.TriggerInstance.hasItems(
+                    ItemPredicate.Builder.item().of(itemLookup, tag)
+                );
 
             return addCriterion(name, t);
         }
 
         //
 
-        public Builder addEquipmentSetSlotCriterion(EquipmentSet set, ArmorSlot slot) {
+        public Builder addEquipmentSetSlotCriterion(
+            EquipmentSet set,
+            ArmorSlot slot
+        ) {
             return addInventoryChangedCriterion(
-                    set.baseName + "_" + slot,
-                    set.get(slot)
+                set.baseName + "_" + slot,
+                set.get(slot)
             );
         }
 
-        public Builder addEquipmentSetSlotCriterion(EquipmentSet set, ToolSlot slot) {
+        public Builder addEquipmentSetSlotCriterion(
+            EquipmentSet set,
+            ToolSlot slot
+        ) {
             return addInventoryChangedCriterion(
-                    set.baseName + "_" + slot,
-                    set.get(slot)
+                set.baseName + "_" + slot,
+                set.get(slot)
             );
         }
 
         public Builder addArmorSetCriterion(EquipmentSet set) {
             return addEquipmentSetSlotCriterion(set, ArmorSlot.HELMET_SLOT)
-                    .addEquipmentSetSlotCriterion(set, ArmorSlot.CHESTPLATE_SLOT)
-                    .addEquipmentSetSlotCriterion(set, ArmorSlot.LEGGINGS_SLOT)
-                    .addEquipmentSetSlotCriterion(set, ArmorSlot.BOOTS_SLOT);
+                .addEquipmentSetSlotCriterion(set, ArmorSlot.CHESTPLATE_SLOT)
+                .addEquipmentSetSlotCriterion(set, ArmorSlot.LEGGINGS_SLOT)
+                .addEquipmentSetSlotCriterion(set, ArmorSlot.BOOTS_SLOT);
         }
 
         public Builder addToolSetCriterion(EquipmentSet set) {
             return addEquipmentSetSlotCriterion(set, ToolSlot.PICKAXE_SLOT)
-                    .addEquipmentSetSlotCriterion(set, ToolSlot.AXE_SLOT)
-                    .addEquipmentSetSlotCriterion(set, ToolSlot.SHOVEL_SLOT)
-                    .addEquipmentSetSlotCriterion(set, ToolSlot.SWORD_SLOT)
-                    .addEquipmentSetSlotCriterion(set, ToolSlot.HOE_SLOT);
+                .addEquipmentSetSlotCriterion(set, ToolSlot.AXE_SLOT)
+                .addEquipmentSetSlotCriterion(set, ToolSlot.SHOVEL_SLOT)
+                .addEquipmentSetSlotCriterion(set, ToolSlot.SWORD_SLOT)
+                .addEquipmentSetSlotCriterion(set, ToolSlot.HOE_SLOT);
         }
 
         public Builder addWoodCriterion(WoodenBlockSet<?> mat) {
             return addInventoryChangedAnyCriterion(
-                    "got_" + mat.baseName,
-                    mat.getBlock(SlotType.LOG),
-                    mat.getBlock(SlotType.BARK),
-                    mat.getBlock(SlotType.PLANKS)
+                "got_" + mat.baseName,
+                mat.getBlock(SlotType.LOG),
+                mat.getBlock(SlotType.BARK),
+                mat.getBlock(SlotType.PLANKS)
             );
         }
 
         public Builder addVisitBiomesCriterion(List<Holder<Biome>> list) {
             for (Holder<Biome> holder : list) {
                 addCriterion(
-                        holder.unwrapKey().orElseThrow().location().toString(),
-                        PlayerTrigger.TriggerInstance.located(LocationPredicate.Builder.inBiome(holder))
+                    holder.unwrapKey().orElseThrow().location().toString(),
+                    PlayerTrigger.TriggerInstance.located(
+                        LocationPredicate.Builder.inBiome(holder)
+                    )
                 );
             }
             return this;
@@ -386,17 +433,21 @@ public class AdvancementManager {
             return this;
         }
 
-        public Builder requirements(AdvancementRequirements.Strategy requirementsStrategy) {
+        public Builder requirements(
+            AdvancementRequirements.Strategy requirementsStrategy
+        ) {
             builder.requirements(requirementsStrategy);
             return this;
         }
 
         @Deprecated(forRemoval = true)
         public Builder requirements(String[][] strings) {
-            return requirements(Arrays.stream(strings)
-                                      .map(Arrays::asList)
-                                      .map(ArrayList::new)
-                                      .collect(Collectors.toList()));
+            return requirements(
+                Arrays.stream(strings)
+                    .map(Arrays::asList)
+                    .map(ArrayList::new)
+                    .collect(Collectors.toList())
+            );
         }
 
         public Builder requirements(List<List<String>> strings) {
@@ -404,13 +455,14 @@ public class AdvancementManager {
             return this;
         }
 
-        public ResourceLocation build() {
+        public Identifier build() {
             AdvancementManager.register(id, this.builder);
             return this.id;
         }
     }
 
     public static class DisplayBuilder {
+
         Builder base;
         final Display display = new Display();
 
@@ -420,7 +472,7 @@ public class AdvancementManager {
             return this;
         }
 
-        public DisplayBuilder background(ResourceLocation value) {
+        public DisplayBuilder background(Identifier value) {
             display.background = value;
             return this;
         }
@@ -475,7 +527,9 @@ public class AdvancementManager {
             return this;
         }
 
-        public DisplayBuilder frame(net.minecraft.advancements.AdvancementType type) {
+        public DisplayBuilder frame(
+            net.minecraft.advancements.AdvancementType type
+        ) {
             display.frame = type;
             return this;
         }

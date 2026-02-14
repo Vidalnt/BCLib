@@ -5,19 +5,18 @@ import de.ambertation.wunderlib.ui.layout.components.*;
 import de.ambertation.wunderlib.ui.layout.values.Rectangle;
 import de.ambertation.wunderlib.ui.layout.values.Value;
 import de.ambertation.wunderlib.ui.vanilla.LayoutScreen;
-import org.betterx.bclib.BCLib;
-
+import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProgressListener;
-
-import java.util.concurrent.atomic.AtomicInteger;
+import org.betterx.bclib.BCLib;
 import org.jetbrains.annotations.Nullable;
 
 class ProgressLogoRender extends CustomRenderComponent<ProgressLogoRender> {
+
     public static final int SIZE = 64;
     public static final int LOGO_SIZE = 512;
     public static final int PIXELATED_SIZE = 512;
@@ -40,19 +39,20 @@ class ProgressLogoRender extends CustomRenderComponent<ProgressLogoRender> {
 
     @Override
     protected void customRender(
-            GuiGraphics guiGraphics,
-            int x,
-            int y,
-            float deltaTicks,
-            Rectangle transform,
-            Rectangle clipRect
+        GuiGraphics guiGraphics,
+        int x,
+        int y,
+        float deltaTicks,
+        Rectangle transform,
+        Rectangle clipRect
     ) {
         //time += 0.03;
         time += deltaTicks * 0.1;
 
         final int yBarLocal = (int) (transform.height * percentage);
 
-        final float fScale = (float) (0.3 * ((Math.sin(time) + 1.0) * 0.5) + 0.7);
+        final float fScale = (float) (0.3 * ((Math.sin(time) + 1.0) * 0.5) +
+            0.7);
         int height = (int) (transform.height * fScale);
         int width = (int) (transform.width * fScale);
         width -= ((transform.width - width) % 2);
@@ -61,43 +61,57 @@ class ProgressLogoRender extends CustomRenderComponent<ProgressLogoRender> {
         final int yOffset = (transform.height - height) / 2;
         final int xOffset = (transform.width - width) / 2;
 
-
-        final int yBarImage = Math.max(0, Math.min(height, yBarLocal - yOffset));
+        final int yBarImage = Math.max(
+            0,
+            Math.min(height, yBarLocal - yOffset)
+        );
         final float relativeY = ((float) yBarImage / height);
 
         if (yBarImage > 0) {
             final int uvTopLogo = (int) (relativeY * LOGO_SIZE);
             guiGraphics.blit(
-                    RenderPipelines.GUI_TEXTURED,
-                    BCLibLayoutScreen.BCLIB_LOGO_LOCATION,
-                    xOffset, yOffset,
-                    0.0f, 0.0f,
-                    width, yBarImage,
-                    LOGO_SIZE, uvTopLogo,
-                    LOGO_SIZE, LOGO_SIZE,
-                    0xFFFFFFFF
+                RenderPipelines.GUI_TEXTURED,
+                BCLibLayoutScreen.BCLIB_LOGO_LOCATION,
+                xOffset,
+                yOffset,
+                0.0f,
+                0.0f,
+                width,
+                yBarImage,
+                LOGO_SIZE,
+                uvTopLogo,
+                LOGO_SIZE,
+                LOGO_SIZE,
+                0xFFFFFFFF
             );
         }
 
         if (yBarImage < height) {
             final int uvTopPixelated = (int) (relativeY * PIXELATED_SIZE);
             guiGraphics.blit(
-                    RenderPipelines.GUI_TEXTURED,
-                    ProgressScreen.BCLIB_LOGO_PIXELATED_LOCATION,
-                    xOffset, yOffset + yBarImage,
-                    0.0f, (float) uvTopPixelated,
-                    width, height - yBarImage,
-                    PIXELATED_SIZE, PIXELATED_SIZE - uvTopPixelated,
-                    PIXELATED_SIZE, PIXELATED_SIZE,
-                    0xFFFFFFFF
+                RenderPipelines.GUI_TEXTURED,
+                ProgressScreen.BCLIB_LOGO_PIXELATED_LOCATION,
+                xOffset,
+                yOffset + yBarImage,
+                0.0f,
+                (float) uvTopPixelated,
+                width,
+                height - yBarImage,
+                PIXELATED_SIZE,
+                PIXELATED_SIZE - uvTopPixelated,
+                PIXELATED_SIZE,
+                PIXELATED_SIZE,
+                0xFFFFFFFF
             );
         }
 
         if (percentage > 0 && percentage < 1.0) {
             guiGraphics.fill(
-                    0, yBarLocal,
-                    transform.width, yBarLocal + 1,
-                    0x3FFFFFFF
+                0,
+                yBarLocal,
+                transform.width,
+                yBarLocal + 1,
+                0x3FFFFFFF
             );
         }
     }
@@ -115,18 +129,22 @@ class ProgressLogoRender extends CustomRenderComponent<ProgressLogoRender> {
     }
 }
 
-public class ProgressScreen extends LayoutScreen implements ProgressListener, AtomicProgressListener {
+public class ProgressScreen
+    extends LayoutScreen
+    implements ProgressListener, AtomicProgressListener
+{
 
-    static final ResourceLocation BCLIB_LOGO_PIXELATED_LOCATION = ResourceLocation.fromNamespaceAndPath(
-            BCLib.MOD_ID,
-            "iconpixelated.png"
-    );
+    static final Identifier BCLIB_LOGO_PIXELATED_LOCATION =
+        Identifier.fromNamespaceAndPath(BCLib.MOD_ID, "iconpixelated.png");
 
-    public ProgressScreen(@Nullable Screen parent, Component title, Component description) {
+    public ProgressScreen(
+        @Nullable Screen parent,
+        Component title,
+        Component description
+    ) {
         super(parent, title);
         this.description = description;
     }
-
 
     Component description;
     private Component stageComponent;
@@ -140,7 +158,9 @@ public class ProgressScreen extends LayoutScreen implements ProgressListener, At
     @Override
     public void incAtomic(int maxProgress) {
         if (atomicCounter != null) {
-            progressStagePercentage((100 * atomicCounter.incrementAndGet()) / maxProgress);
+            progressStagePercentage(
+                (100 * atomicCounter.incrementAndGet()) / maxProgress
+            );
         }
     }
 
@@ -159,9 +179,10 @@ public class ProgressScreen extends LayoutScreen implements ProgressListener, At
     }
 
     private Component getProgressComponent(int pg) {
-        return Component.translatable("title.bclib.progress").append(": " + pg + "%");
+        return Component.translatable("title.bclib.progress").append(
+            ": " + pg + "%"
+        );
     }
-
 
     @Override
     public void progressStartNoAbort(Component text) {
@@ -185,49 +206,62 @@ public class ProgressScreen extends LayoutScreen implements ProgressListener, At
     public void progressStagePercentage(int progress) {
         if (progress != currentProgress) {
             currentProgress = progress;
-            if (progressImage != null) progressImage.percentage = currentProgress / 100.0f;
-            if (this.progress != null) this.progress.setText(getProgressComponent());
+            if (progressImage != null) progressImage.percentage =
+                currentProgress / 100.0f;
+            if (this.progress != null) this.progress.setText(
+                getProgressComponent()
+            );
         }
     }
 
     @Override
-    public void stop() {
-
-    }
+    public void stop() {}
 
     @Override
-    protected LayoutComponent<?, ?> createScreen(LayoutComponent<?, ?> content) {
+    protected LayoutComponent<?, ?> createScreen(
+        LayoutComponent<?, ?> content
+    ) {
         return content;
     }
 
     @Override
     protected LayoutComponent<?, ?> initContent() {
-        VerticalStack grid = new VerticalStack(fill(), fill()).setDebugName("grid");
+        VerticalStack grid = new VerticalStack(fill(), fill()).setDebugName(
+            "grid"
+        );
         grid.addFiller();
         grid.add(createTitle());
         grid.addSpacer(4);
 
-        HorizontalStack contentRow = grid.addRow(fit(), fit())
-                                         .centerHorizontal()
-                                         .setDebugName("contentRow");
+        HorizontalStack contentRow = grid
+            .addRow(fit(), fit())
+            .centerHorizontal()
+            .setDebugName("contentRow");
 
         progressImage = new ProgressLogoRender();
         progressImage.percentage = currentProgress / 100.0f;
         contentRow.add(progressImage);
         contentRow.addSpacer(8);
 
-        VerticalStack textCol = contentRow.addColumn(fit(), fit()).setDebugName("textCol").centerVertical();
+        VerticalStack textCol = contentRow
+            .addColumn(fit(), fit())
+            .setDebugName("textCol")
+            .centerVertical();
         textCol.addText(fit(), fit(), description);
         textCol.addSpacer(4);
-        progress = textCol.addText(fit(), fit(), getProgressComponent()).setColor(ColorHelper.GRAY);
-
+        progress = textCol
+            .addText(fit(), fit(), getProgressComponent())
+            .setColor(ColorHelper.GRAY);
 
         grid.addSpacer(20);
         stageRow = grid.addRow(fill(), fit());
-        stage = stageRow.addMultilineText(
-                fill(), fit(),
+        stage = stageRow
+            .addMultilineText(
+                fill(),
+                fit(),
                 stageComponent != null ? stageComponent : Component.literal("")
-        ).centerHorizontal();
+            )
+            .centerHorizontal();
         grid.addFiller();
 
         return grid;

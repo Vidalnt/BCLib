@@ -8,7 +8,7 @@ package org.betterx.bclib.integration.emi;
 //import net.minecraft.client.gui.GuiGraphics;
 //import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 //import net.minecraft.client.renderer.MultiBufferSource;
-//import net.minecraft.resources.ResourceLocation;
+//import net.minecraft.resources.Identifier;
 //import net.minecraft.util.FormattedCharSequence;
 //
 //import com.google.common.collect.Lists;
@@ -26,20 +26,20 @@ package org.betterx.bclib.integration.emi;
 //    private final List<FormattedCharSequence> titleLines;
 //
 //
-//    public EMIAnvilRecipeCategory(ResourceLocation id, EmiRenderable icon, int anvilLevel) {
+//    public EMIAnvilRecipeCategory(Identifier id, EmiRenderable icon, int anvilLevel) {
 //        super(id, icon);
 //        this.anvilLevel = anvilLevel;
 //        titleLines = LeveledAnvilBlock.getNamesForLevel(anvilLevel);
 //    }
 //
-//    public EMIAnvilRecipeCategory(ResourceLocation id, EmiRenderable icon, EmiRenderable simplified, int anvilLevel) {
+//    public EMIAnvilRecipeCategory(Identifier id, EmiRenderable icon, EmiRenderable simplified, int anvilLevel) {
 //        super(id, icon, simplified);
 //        this.anvilLevel = anvilLevel;
 //        titleLines = LeveledAnvilBlock.getNamesForLevel(anvilLevel);
 //    }
 //
 //    public EMIAnvilRecipeCategory(
-//            ResourceLocation id,
+//            Identifier id,
 //            EmiRenderable icon, EmiTexture simplified,
 //            Comparator<EmiRecipe> sorter,
 //            int anvilLevel

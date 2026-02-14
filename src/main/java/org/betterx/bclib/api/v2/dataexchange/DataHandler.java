@@ -1,29 +1,35 @@
 package org.betterx.bclib.api.v2.dataexchange;
 
-import org.betterx.bclib.BCLib;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.minecraft.world.entity.player.Player;
-
+import java.util.Collection;
+import java.util.List;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.player.Player;
+import org.betterx.bclib.BCLib;
 
-import java.util.Collection;
-import java.util.List;
+public abstract class DataHandler<
+    T extends CustomPacketPayload
+> extends BaseDataHandler<T> {
 
-public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDataHandler<T> {
-    public abstract static class WithoutPayload<T extends CustomPacketPayload> extends DataHandler<T> {
-        protected WithoutPayload(ResourceLocation identifier, boolean originatesOnServer) {
+    public abstract static class WithoutPayload<
+        T extends CustomPacketPayload
+    > extends DataHandler<T> {
+
+        protected WithoutPayload(
+            Identifier identifier,
+            boolean originatesOnServer
+        ) {
             super(identifier, originatesOnServer);
         }
 
@@ -39,14 +45,13 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
 
         @Override
         protected void deserializeIncomingData(
-                T payload,
-                PacketSender responseSender,
-                boolean isClient
-        ) {
-        }
+            T payload,
+            PacketSender responseSender,
+            boolean isClient
+        ) {}
     }
 
-    protected DataHandler(ResourceLocation identifier, boolean originatesOnServer) {
+    protected DataHandler(Identifier identifier, boolean originatesOnServer) {
         super(identifier, originatesOnServer);
     }
 
@@ -54,23 +59,27 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
         return true;
     }
 
-    abstract protected T serializeData(boolean isClient);
+    protected abstract T serializeData(boolean isClient);
 
-    abstract protected void deserializeIncomingData(
-            T payload,
-            PacketSender responseSender,
-            boolean isClient
+    protected abstract void deserializeIncomingData(
+        T payload,
+        PacketSender responseSender,
+        boolean isClient
     );
 
-    abstract protected void runOnGameThread(Minecraft client, MinecraftServer server, boolean isClient);
+    protected abstract void runOnGameThread(
+        Minecraft client,
+        MinecraftServer server,
+        boolean isClient
+    );
 
     @Environment(EnvType.CLIENT)
     @Override
     void receiveFromServer(
-            Minecraft client,
-            ClientPacketListener handler,
-            T payload,
-            PacketSender responseSender
+        Minecraft client,
+        ClientPacketListener handler,
+        T payload,
+        PacketSender responseSender
     ) {
         deserializeIncomingData(payload, responseSender, true);
         final Runnable runner = () -> runOnGameThread(client, null, true);
@@ -81,13 +90,19 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
 
     @Override
     void receiveFromClient(
-            MinecraftServer server,
-            ServerPlayer player,
-            ServerGamePacketListenerImpl handler,
-            T payload,
-            PacketSender responseSender
+        MinecraftServer server,
+        ServerPlayer player,
+        ServerGamePacketListenerImpl handler,
+        T payload,
+        PacketSender responseSender
     ) {
-        super.receiveFromClient(server, player, handler, payload, responseSender);
+        super.receiveFromClient(
+            server,
+            player,
+            handler,
+            payload,
+            responseSender
+        );
 
         deserializeIncomingData(payload, responseSender, false);
         final Runnable runner = () -> runOnGameThread(null, server, false);
@@ -100,7 +115,12 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
     void sendToClient(MinecraftServer server) {
         if (prepareData(false)) {
             T obj = serializeData(false);
-            _sendToClient(getIdentifier(), server, PlayerLookup.all(server), obj);
+            _sendToClient(
+                getIdentifier(),
+                server,
+                PlayerLookup.all(server),
+                obj
+            );
         }
     }
 
@@ -112,18 +132,16 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
         }
     }
 
-
     public static <T extends CustomPacketPayload> void _sendToClient(
-            ResourceLocation identifier,
-            MinecraftServer server,
-            Collection<ServerPlayer> players,
-            T payload
+        Identifier identifier,
+        MinecraftServer server,
+        Collection<ServerPlayer> players,
+        T payload
     ) {
         if (payload == null) return;
         for (ServerPlayer player : players) {
             ServerPlayNetworking.send(player, payload);
         }
-
     }
 
     @Environment(EnvType.CLIENT)
@@ -138,9 +156,15 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
     /**
      * A Message that always originates on the Client
      */
-    public abstract static class FromClient<T extends CustomPacketPayload> extends BaseDataHandler<T> {
-        public abstract static class WithoutPayload<T extends CustomPacketPayload> extends FromClient<T> {
-            protected WithoutPayload(ResourceLocation identifier) {
+    public abstract static class FromClient<
+        T extends CustomPacketPayload
+    > extends BaseDataHandler<T> {
+
+        public abstract static class WithoutPayload<
+            T extends CustomPacketPayload
+        > extends FromClient<T> {
+
+            protected WithoutPayload(Identifier identifier) {
                 super(identifier);
             }
 
@@ -155,12 +179,14 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
             }
 
             @Override
-            protected void deserializeIncomingDataOnServer(T payload, Player player, PacketSender responseSender) {
-
-            }
+            protected void deserializeIncomingDataOnServer(
+                T payload,
+                Player player,
+                PacketSender responseSender
+            ) {}
         }
 
-        protected FromClient(ResourceLocation identifier) {
+        protected FromClient(Identifier identifier) {
             super(identifier, false);
         }
 
@@ -170,35 +196,48 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
         }
 
         @Environment(EnvType.CLIENT)
-        abstract protected T serializeDataOnClient();
+        protected abstract T serializeDataOnClient();
 
         protected abstract void deserializeIncomingDataOnServer(
-                T payload,
-                Player player,
-                PacketSender responseSender
+            T payload,
+            Player player,
+            PacketSender responseSender
         );
 
-        protected abstract void runOnServerGameThread(MinecraftServer server, Player player);
+        protected abstract void runOnServerGameThread(
+            MinecraftServer server,
+            Player player
+        );
 
         @Override
         void receiveFromServer(
-                Minecraft client,
-                ClientPacketListener handler,
-                CustomPacketPayload payload,
-                PacketSender responseSender
+            Minecraft client,
+            ClientPacketListener handler,
+            CustomPacketPayload payload,
+            PacketSender responseSender
         ) {
-            BCLib.LOGGER.error("[Internal Error] The message '" + getIdentifier() + "' must originate from the client!");
+            BCLib.LOGGER.error(
+                "[Internal Error] The message '" +
+                    getIdentifier() +
+                    "' must originate from the client!"
+            );
         }
 
         @Override
         void receiveFromClient(
-                MinecraftServer server,
-                ServerPlayer player,
-                ServerGamePacketListenerImpl handler,
-                T payload,
-                PacketSender responseSender
+            MinecraftServer server,
+            ServerPlayer player,
+            ServerGamePacketListenerImpl handler,
+            T payload,
+            PacketSender responseSender
         ) {
-            super.receiveFromClient(server, player, handler, payload, responseSender);
+            super.receiveFromClient(
+                server,
+                player,
+                handler,
+                payload,
+                responseSender
+            );
 
             deserializeIncomingDataOnServer(payload, player, responseSender);
             final Runnable runner = () -> runOnServerGameThread(server, player);
@@ -209,12 +248,20 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
 
         @Override
         void sendToClient(MinecraftServer server) {
-            BCLib.LOGGER.error("[Internal Error] The message '" + getIdentifier() + "' must originate from the client!");
+            BCLib.LOGGER.error(
+                "[Internal Error] The message '" +
+                    getIdentifier() +
+                    "' must originate from the client!"
+            );
         }
 
         @Override
         void sendToClient(MinecraftServer server, ServerPlayer player) {
-            BCLib.LOGGER.error("[Internal Error] The message '" + getIdentifier() + "' must originate from the client!");
+            BCLib.LOGGER.error(
+                "[Internal Error] The message '" +
+                    getIdentifier() +
+                    "' must originate from the client!"
+            );
         }
 
         @Environment(EnvType.CLIENT)
@@ -230,9 +277,15 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
     /**
      * A Message that always originates on the Server
      */
-    public abstract static class FromServer<T extends CustomPacketPayload> extends BaseDataHandler<T> {
-        public abstract static class WithoutPayload<T extends CustomPacketPayload> extends FromServer<T> {
-            protected WithoutPayload(ResourceLocation identifier) {
+    public abstract static class FromServer<
+        T extends CustomPacketPayload
+    > extends BaseDataHandler<T> {
+
+        public abstract static class WithoutPayload<
+            T extends CustomPacketPayload
+        > extends FromServer<T> {
+
+            protected WithoutPayload(Identifier identifier) {
                 super(identifier);
             }
 
@@ -247,11 +300,13 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
             }
 
             @Override
-            protected void deserializeIncomingDataOnClient(T payload, PacketSender responseSender) {
-            }
+            protected void deserializeIncomingDataOnClient(
+                T payload,
+                PacketSender responseSender
+            ) {}
         }
 
-        protected FromServer(ResourceLocation identifier) {
+        protected FromServer(Identifier identifier) {
             super(identifier, true);
         }
 
@@ -259,21 +314,23 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
             return true;
         }
 
-        abstract protected T serializeDataOnServer();
+        protected abstract T serializeDataOnServer();
 
         @Environment(EnvType.CLIENT)
-        abstract protected void deserializeIncomingDataOnClient(T payload, PacketSender responseSender);
+        protected abstract void deserializeIncomingDataOnClient(
+            T payload,
+            PacketSender responseSender
+        );
 
         @Environment(EnvType.CLIENT)
-        abstract protected void runOnClientGameThread(Minecraft client);
-
+        protected abstract void runOnClientGameThread(Minecraft client);
 
         @Override
         void receiveFromServer(
-                Minecraft client,
-                ClientPacketListener handler,
-                T payload,
-                PacketSender responseSender
+            Minecraft client,
+            ClientPacketListener handler,
+            T payload,
+            PacketSender responseSender
         ) {
             deserializeIncomingDataOnClient(payload, responseSender);
             final Runnable runner = () -> runOnClientGameThread(client);
@@ -284,14 +341,24 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
 
         @Override
         void receiveFromClient(
-                MinecraftServer server,
-                ServerPlayer player,
-                ServerGamePacketListenerImpl handler,
-                T payload,
-                PacketSender responseSender
+            MinecraftServer server,
+            ServerPlayer player,
+            ServerGamePacketListenerImpl handler,
+            T payload,
+            PacketSender responseSender
         ) {
-            super.receiveFromClient(server, player, handler, payload, responseSender);
-            BCLib.LOGGER.error("[Internal Error] The message '" + getIdentifier() + "' must originate from the server!");
+            super.receiveFromClient(
+                server,
+                player,
+                handler,
+                payload,
+                responseSender
+            );
+            BCLib.LOGGER.error(
+                "[Internal Error] The message '" +
+                    getIdentifier() +
+                    "' must originate from the server!"
+            );
         }
 
         public void receiveFromMemory(T payload) {
@@ -303,7 +370,12 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
             if (prepareDataOnServer()) {
                 T obj = serializeDataOnServer();
 
-                _sendToClient(getIdentifier(), server, PlayerLookup.all(server), obj);
+                _sendToClient(
+                    getIdentifier(),
+                    server,
+                    PlayerLookup.all(server),
+                    obj
+                );
             }
         }
 
@@ -318,7 +390,11 @@ public abstract class DataHandler<T extends CustomPacketPayload> extends BaseDat
         @Environment(EnvType.CLIENT)
         @Override
         final void sendToServer(Minecraft client) {
-            BCLib.LOGGER.error("[Internal Error] The message '" + getIdentifier() + "' must originate from the server!");
+            BCLib.LOGGER.error(
+                "[Internal Error] The message '" +
+                    getIdentifier() +
+                    "' must originate from the server!"
+            );
         }
     }
 }

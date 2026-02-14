@@ -1,17 +1,9 @@
 package org.betterx.bclib.blocks;
 
-import org.betterx.bclib.behaviours.BehaviourBuilders;
-import org.betterx.bclib.behaviours.interfaces.BehaviourPlant;
-import org.betterx.bclib.client.render.BCLRenderLayer;
-import org.betterx.bclib.interfaces.RenderLayerProvider;
-import org.betterx.bclib.interfaces.tools.AddMineableShears;
-import org.betterx.wover.loot.api.BlockLootProvider;
-import org.betterx.wover.loot.api.LootLookupProvider;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -27,17 +19,28 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-
+import org.betterx.bclib.behaviours.BehaviourBuilders;
+import org.betterx.bclib.behaviours.interfaces.BehaviourPlant;
+import org.betterx.bclib.client.render.BCLRenderLayer;
+import org.betterx.bclib.interfaces.RenderLayerProvider;
+import org.betterx.bclib.interfaces.tools.AddMineableShears;
+import org.betterx.wover.loot.api.BlockLootProvider;
+import org.betterx.wover.loot.api.LootLookupProvider;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class UpDownPlantBlock extends BaseBlockNotFull implements RenderLayerProvider, AddMineableShears, BehaviourPlant, BlockLootProvider {
+public abstract class UpDownPlantBlock
+    extends BaseBlockNotFull
+    implements
+        RenderLayerProvider,
+        AddMineableShears,
+        BehaviourPlant,
+        BlockLootProvider
+{
+
     private static final VoxelShape SHAPE = box(4, 0, 4, 12, 16, 12);
 
     public UpDownPlantBlock() {
-        this(BehaviourBuilders
-                .createPlant()
-                .sound(SoundType.GRASS)
-        );
+        this(BehaviourBuilders.createPlant().sound(SoundType.GRASS));
     }
 
     public UpDownPlantBlock(BlockBehaviour.Properties properties) {
@@ -48,33 +51,49 @@ public abstract class UpDownPlantBlock extends BaseBlockNotFull implements Rende
 
     @Override
     @SuppressWarnings("deprecation")
-    public VoxelShape getShape(BlockState state, BlockGetter view, BlockPos pos, CollisionContext ePos) {
+    public VoxelShape getShape(
+        BlockState state,
+        BlockGetter view,
+        BlockPos pos,
+        CollisionContext ePos
+    ) {
         return SHAPE;
     }
 
     @Override
     @SuppressWarnings("deprecation")
-    public boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
+    public boolean canSurvive(
+        BlockState state,
+        LevelReader world,
+        BlockPos pos
+    ) {
         BlockState down = world.getBlockState(pos.below());
         BlockState up = world.getBlockState(pos.above());
-        return (isTerrain(down) || down.getBlock() == this) && (isSupport(up, world, pos) || up.getBlock() == this);
+        return (
+            (isTerrain(down) || down.getBlock() == this) &&
+            (isSupport(up, world, pos) || up.getBlock() == this)
+        );
     }
 
-    protected boolean isSupport(BlockState state, LevelReader world, BlockPos pos) {
+    protected boolean isSupport(
+        BlockState state,
+        LevelReader world,
+        BlockPos pos
+    ) {
         return canSupportCenter(world, pos.above(), Direction.UP);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     protected BlockState updateShape(
-            BlockState state,
-            LevelReader level,
-            ScheduledTickAccess scheduledTickAccess,
-            BlockPos pos,
-            Direction neighborDirection,
-            BlockPos neighborPos,
-            BlockState neighborState,
-            RandomSource randomSource
+        BlockState state,
+        LevelReader level,
+        ScheduledTickAccess scheduledTickAccess,
+        BlockPos pos,
+        Direction neighborDirection,
+        BlockPos neighborPos,
+        BlockState neighborState,
+        RandomSource randomSource
     ) {
         if (!canSurvive(state, level, pos)) {
             return Blocks.AIR.defaultBlockState();
@@ -90,12 +109,12 @@ public abstract class UpDownPlantBlock extends BaseBlockNotFull implements Rende
 
     @Override
     public void playerDestroy(
-            Level world,
-            Player player,
-            BlockPos pos,
-            BlockState state,
-            BlockEntity blockEntity,
-            ItemStack stack
+        Level world,
+        Player player,
+        BlockPos pos,
+        BlockState state,
+        BlockEntity blockEntity,
+        ItemStack stack
     ) {
         super.playerDestroy(world, player, pos, state, blockEntity, stack);
         world.updateNeighborsAt(pos.below(), Blocks.AIR);
@@ -103,9 +122,9 @@ public abstract class UpDownPlantBlock extends BaseBlockNotFull implements Rende
 
     @Override
     public LootTable.Builder registerBlockLoot(
-            @NotNull ResourceLocation location,
-            @NotNull LootLookupProvider provider,
-            @NotNull ResourceKey<LootTable> tableKey
+        @NotNull Identifier location,
+        @NotNull LootLookupProvider provider,
+        @NotNull ResourceKey<LootTable> tableKey
     ) {
         return provider.dropWithSilkTouch(this);
     }

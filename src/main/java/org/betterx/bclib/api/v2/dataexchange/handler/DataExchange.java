@@ -1,19 +1,15 @@
 package org.betterx.bclib.api.v2.dataexchange.handler;
 
-import org.betterx.bclib.api.v2.dataexchange.*;
-
-import net.minecraft.resources.ResourceLocation;
-
+import java.util.HashSet;
+import java.util.Set;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.resources.Identifier;
+import org.betterx.bclib.api.v2.dataexchange.*;
 
-import java.util.HashSet;
-import java.util.Set;
-
-abstract public class DataExchange {
-
+public abstract class DataExchange {
 
     private static DataExchangeAPI instance;
 
@@ -28,12 +24,11 @@ abstract public class DataExchange {
     protected ConnectorClientside client;
     protected final Set<DataHandlerDescriptor> descriptors;
 
-
     private final boolean didLoadSyncFolder = false;
 
-    abstract protected ConnectorClientside clientSupplier(DataExchange api);
+    protected abstract ConnectorClientside clientSupplier(DataExchange api);
 
-    abstract protected ConnectorServerside serverSupplier(DataExchange api);
+    protected abstract ConnectorServerside serverSupplier(DataExchange api);
 
     protected DataExchange() {
         descriptors = new HashSet<>();
@@ -43,8 +38,12 @@ abstract public class DataExchange {
         return descriptors;
     }
 
-    public static DataHandlerDescriptor getDescriptor(ResourceLocation identifier) {
-        return getInstance().descriptors.stream().filter(d -> d.equals(identifier)).findFirst().orElse(null);
+    public static DataHandlerDescriptor getDescriptor(Identifier identifier) {
+        return getInstance()
+            .descriptors.stream()
+            .filter(d -> d.equals(identifier))
+            .findFirst()
+            .orElse(null);
     }
 
     @Environment(EnvType.CLIENT)
@@ -54,7 +53,9 @@ abstract public class DataExchange {
 
         ClientPlayConnectionEvents.INIT.register(client::onPlayInit);
         ClientPlayConnectionEvents.JOIN.register(client::onPlayReady);
-        ClientPlayConnectionEvents.DISCONNECT.register(client::onPlayDisconnect);
+        ClientPlayConnectionEvents.DISCONNECT.register(
+            client::onPlayDisconnect
+        );
     }
 
     protected void initServerSide() {
@@ -63,7 +64,9 @@ abstract public class DataExchange {
 
         ServerPlayConnectionEvents.INIT.register(server::onPlayInit);
         ServerPlayConnectionEvents.JOIN.register(server::onPlayReady);
-        ServerPlayConnectionEvents.DISCONNECT.register(server::onPlayDisconnect);
+        ServerPlayConnectionEvents.DISCONNECT.register(
+            server::onPlayDisconnect
+        );
     }
 
     /**
@@ -75,7 +78,6 @@ abstract public class DataExchange {
     public static void prepareClientside() {
         DataExchange api = DataExchange.getInstance();
         api.initClientside();
-
     }
 
     /**
@@ -88,7 +90,6 @@ abstract public class DataExchange {
         api.initServerSide();
     }
 
-
     /**
      * Automatically called before the player enters the world.
      * <p>
@@ -97,15 +98,15 @@ abstract public class DataExchange {
      */
     @Environment(EnvType.CLIENT)
     public static void sendOnEnter() {
-        getInstance().descriptors.forEach((desc) -> {
+        getInstance().descriptors.forEach(desc -> {
             if (desc.sendBeforeEnter) {
-                BaseDataHandler<?> h = (BaseDataHandler<?>) desc.JOIN_INSTANCE.get();
+                BaseDataHandler<?> h = (BaseDataHandler<
+                    ?
+                >) desc.JOIN_INSTANCE.get();
                 if (!h.getOriginatesOnServer()) {
                     getInstance().client.sendToServer(h);
                 }
             }
         });
     }
-
-
 }

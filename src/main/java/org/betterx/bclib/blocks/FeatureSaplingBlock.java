@@ -1,7 +1,5 @@
 package org.betterx.bclib.blocks;
 
-import org.betterx.bclib.behaviours.BehaviourBuilders;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -20,18 +18,24 @@ import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-
+import org.betterx.bclib.behaviours.BehaviourBuilders;
 import org.jetbrains.annotations.NotNull;
 
-public class FeatureSaplingBlock<F extends Feature<FC>, FC extends FeatureConfiguration> extends SaplingBlock {
+public class FeatureSaplingBlock<
+    F extends Feature<FC>,
+    FC extends FeatureConfiguration
+> extends SaplingBlock {
 
     @FunctionalInterface
-    public interface FeatureSupplier<F extends Feature<FC>, FC extends FeatureConfiguration> {
+    public interface FeatureSupplier<
+        F extends Feature<FC>,
+        FC extends FeatureConfiguration
+    > {
         boolean grow(
-                @NotNull ServerLevel level,
-                @NotNull BlockPos pos,
-                @NotNull BlockState state,
-                @NotNull RandomSource random
+            @NotNull ServerLevel level,
+            @NotNull BlockPos pos,
+            @NotNull BlockState state,
+            @NotNull RandomSource random
         );
     }
 
@@ -42,29 +46,33 @@ public class FeatureSaplingBlock<F extends Feature<FC>, FC extends FeatureConfig
         this(0, featureSupplier);
     }
 
-    public FeatureSaplingBlock(int light, FeatureSupplier<F, FC> featureSupplier) {
+    public FeatureSaplingBlock(
+        int light,
+        FeatureSupplier<F, FC> featureSupplier
+    ) {
         this(
-                BehaviourBuilders.createPlant().randomTicks()
-                                 .noCollission()
-                                 .lightLevel(state -> light)
-                                 .sound(SoundType.GRASS),
-                featureSupplier
+            BehaviourBuilders.createPlant()
+                .randomTicks()
+                .noCollision()
+                .lightLevel(state -> light)
+                .sound(SoundType.GRASS),
+            featureSupplier
         );
     }
 
     public FeatureSaplingBlock(
-            BlockBehaviour.Properties properties,
-            FeatureSupplier<F, FC> featureSupplier
+        BlockBehaviour.Properties properties,
+        FeatureSupplier<F, FC> featureSupplier
     ) {
         super(null, properties);
         this.feature = featureSupplier;
     }
 
     protected boolean growFeature(
-            @NotNull ServerLevel world,
-            @NotNull BlockPos pos,
-            @NotNull BlockState blockState,
-            @NotNull RandomSource random
+        @NotNull ServerLevel world,
+        @NotNull BlockPos pos,
+        @NotNull BlockState blockState,
+        @NotNull RandomSource random
     ) {
         if (feature != null) {
             return feature.grow(world, pos, blockState, random);
@@ -74,26 +82,38 @@ public class FeatureSaplingBlock<F extends Feature<FC>, FC extends FeatureConfig
 
     @Override
     protected BlockState updateShape(
-            BlockState state,
-            LevelReader level,
-            ScheduledTickAccess scheduledTickAccess,
-            BlockPos pos,
-            Direction neighborDirection,
-            BlockPos neighborPos,
-            BlockState neighborState,
-            RandomSource randomSource
+        BlockState state,
+        LevelReader level,
+        ScheduledTickAccess scheduledTickAccess,
+        BlockPos pos,
+        Direction neighborDirection,
+        BlockPos neighborPos,
+        BlockState neighborState,
+        RandomSource randomSource
     ) {
-        if (!canSurvive(state, level, pos)) return Blocks.AIR.defaultBlockState();
+        if (
+            !canSurvive(state, level, pos)
+        ) return Blocks.AIR.defaultBlockState();
         else return state;
     }
 
     @Override
-    public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(
+        Level level,
+        RandomSource random,
+        BlockPos pos,
+        BlockState state
+    ) {
         return random.nextInt(16) == 0;
     }
 
     @Override
-    public void advanceTree(ServerLevel world, BlockPos pos, BlockState blockState, RandomSource random) {
+    public void advanceTree(
+        ServerLevel world,
+        BlockPos pos,
+        BlockState blockState,
+        RandomSource random
+    ) {
         if (blockState.getValue(STAGE) == 0) {
             world.setBlock(pos, blockState.cycle(STAGE), 4);
         } else {
@@ -102,20 +122,33 @@ public class FeatureSaplingBlock<F extends Feature<FC>, FC extends FeatureConfig
     }
 
     protected boolean doGrowFeature(
-            ServerLevel serverLevel,
-            BlockPos blockPos,
-            BlockState originalBlockState,
-            RandomSource randomSource
+        ServerLevel serverLevel,
+        BlockPos blockPos,
+        BlockState originalBlockState,
+        RandomSource randomSource
     ) {
         if (feature == null) {
             return false;
         } else {
-            BlockState emptyState = serverLevel.getFluidState(blockPos).createLegacyBlock();
+            BlockState emptyState = serverLevel
+                .getFluidState(blockPos)
+                .createLegacyBlock();
             serverLevel.setBlock(blockPos, emptyState, 4);
-            ;
-            if (growFeature(serverLevel, blockPos, originalBlockState, randomSource)) {
+            if (
+                growFeature(
+                    serverLevel,
+                    blockPos,
+                    originalBlockState,
+                    randomSource
+                )
+            ) {
                 if (serverLevel.getBlockState(blockPos) == emptyState) {
-                    serverLevel.sendBlockUpdated(blockPos, originalBlockState, emptyState, 2);
+                    serverLevel.sendBlockUpdated(
+                        blockPos,
+                        originalBlockState,
+                        emptyState,
+                        2
+                    );
                 }
 
                 return true;
@@ -127,12 +160,22 @@ public class FeatureSaplingBlock<F extends Feature<FC>, FC extends FeatureConfig
     }
 
     @Override
-    public void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+    public void randomTick(
+        BlockState state,
+        ServerLevel world,
+        BlockPos pos,
+        RandomSource random
+    ) {
         this.tick(state, world, pos, random);
     }
 
     @Override
-    public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+    public void tick(
+        BlockState state,
+        ServerLevel world,
+        BlockPos pos,
+        RandomSource random
+    ) {
         super.tick(state, world, pos, random);
         if (isBonemealSuccess(world, random, pos, state)) {
             performBonemeal(world, random, pos, state);
@@ -140,7 +183,12 @@ public class FeatureSaplingBlock<F extends Feature<FC>, FC extends FeatureConfig
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter view, BlockPos pos, CollisionContext ePos) {
+    public VoxelShape getShape(
+        BlockState state,
+        BlockGetter view,
+        BlockPos pos,
+        CollisionContext ePos
+    ) {
         return SHAPE;
     }
 }

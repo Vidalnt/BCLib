@@ -5,7 +5,7 @@ package org.betterx.bclib.integration.emi;
 //import org.betterx.bclib.interfaces.AlloyingRecipeWorkstation;
 //import org.betterx.wover.core.api.Logger;
 //
-//import net.minecraft.resources.ResourceLocation;
+//import net.minecraft.resources.Identifier;
 //import net.minecraft.world.item.crafting.*;
 //import net.minecraft.world.level.block.Blocks;
 //
@@ -24,7 +24,7 @@ package org.betterx.bclib.integration.emi;
 //public class EMIPlugin implements EmiPlugin {
 //    private static boolean didInit = false;
 //    private static int maxAnvilLevel = 1;
-//    public static final ResourceLocation BCL_SIMPLIFIED_SPRITES = BCLib.makeID(
+//    public static final Identifier BCL_SIMPLIFIED_SPRITES = BCLib.makeID(
 //            "textures/gui/widgets.png"
 //    );
 //
