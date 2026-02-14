@@ -23,19 +23,15 @@ public class PrintInfo {
     ) {
         return bnContext.then(
             Commands.literal("print")
-                .requires(source -> source.hasPermission(Commands.LEVEL_OWNERS))
+                .requires(Commands.hasPermission(Commands.LEVEL_OWNERS))
                 .then(
                     Commands.literal("dimensions")
-                        .requires(source ->
-                            source.hasPermission(Commands.LEVEL_OWNERS)
-                        )
+                        .requires(Commands.hasPermission(Commands.LEVEL_OWNERS))
                         .executes(PrintInfo::printDimensions)
                 )
                 .then(
                     Commands.literal("climate")
-                        .requires(source ->
-                            source.hasPermission(Commands.LEVEL_OWNERS)
-                        )
+                        .requires(Commands.hasPermission(Commands.LEVEL_OWNERS))
                         .executes(PrintInfo::printMapValues)
                 )
         );

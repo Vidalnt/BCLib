@@ -35,7 +35,7 @@ public class DumpMap {
     ) {
         return bnContext.then(
             Commands.literal("dump_maps")
-                .requires(source -> source.hasPermission(Commands.LEVEL_OWNERS))
+                .requires(Commands.hasPermission(Commands.LEVEL_OWNERS))
                 .then(Commands.literal("png").executes(DumpMap::dumpImageMaps))
                 .then(Commands.literal("json").executes(DumpMap::dumpJsonMaps))
         );

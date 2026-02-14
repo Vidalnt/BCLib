@@ -44,7 +44,7 @@ class Display {
             description,
             background == null
                 ? Optional.empty()
-                : Optional.of(new ClientAsset(background)),
+                : Optional.of(new ClientAsset.ResourceTexture(background)),
             frame,
             showToast,
             announceChat,

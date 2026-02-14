@@ -812,7 +812,7 @@ public class PlaceCommand {
         CommandBuildContext commandBuildContext
     ) {
         final var command = Commands.literal(PLACE_COMMAND).requires(
-            commandSourceStack -> commandSourceStack.hasPermission(2)
+            Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)
         );
 
         new PlaceCommandBuilder().register(commandBuildContext, command);
@@ -956,7 +956,7 @@ public class PlaceCommand {
             entity.setAutomatic(false);
             entity.setPowered(false);
             entity.getType().onlyOpCanSetNbt();
-            entity.getCommandBlock().shouldInformAdmins();
+            entity.getCommandBlock().isTrackOutput();
             entity
                 .getCommandBlock()
                 .setCommand(
