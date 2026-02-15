@@ -1,0 +1,52 @@
+package org.betterx.bclib.complexmaterials;
+
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
+import org.betterx.bclib.BCLib;
+import org.betterx.bclib.behaviours.BehaviourBuilders;
+import org.betterx.bclib.complexmaterials.entry.SlotMap;
+import org.betterx.bclib.complexmaterials.set.stone.StoneSlots;
+import org.betterx.wover.core.api.ModCore;
+
+public class StoneComplexMaterial
+    extends ComplexMaterialSet<StoneComplexMaterial>
+{
+
+    public static final Identifier MATERIAL_ID = BCLib.makeID("stone_material");
+    public final MapColor color;
+    public final Block sourceBlock;
+
+    protected StoneComplexMaterial(
+        ModCore modCore,
+        String baseName,
+        String receipGroupPrefix,
+        Block sourceBlock,
+        MapColor color
+    ) {
+        super(modCore, baseName, receipGroupPrefix);
+        this.color = color;
+        this.sourceBlock = sourceBlock;
+    }
+
+    @Override
+    protected BlockBehaviour.Properties getBlockSettings() {
+        return BehaviourBuilders.createStone(color);
+    }
+
+    @Override
+    public Identifier getMaterialID() {
+        return MATERIAL_ID;
+    }
+
+    @Override
+    protected SlotMap<StoneComplexMaterial> createMaterialSlots() {
+        return SlotMap.of(
+            StoneSlots.SOURCE,
+            StoneSlots.SLAB,
+            StoneSlots.STAIRS,
+            StoneSlots.WALL
+        );
+    }
+}
