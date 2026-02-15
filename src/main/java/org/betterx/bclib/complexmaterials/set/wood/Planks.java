@@ -1,0 +1,51 @@
+package org.betterx.bclib.complexmaterials.set.wood;
+
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import org.betterx.bclib.blocks.BasePlanks;
+import org.betterx.bclib.complexmaterials.ComplexMaterial;
+import org.betterx.bclib.complexmaterials.WoodenComplexMaterial;
+import org.betterx.bclib.complexmaterials.entry.SimpleMaterialSlot;
+import org.betterx.wover.recipe.api.RecipeBuilder;
+import org.betterx.wover.recipe.api.RecipeBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public class Planks extends SimpleMaterialSlot<WoodenComplexMaterial> {
+
+    public Planks() {
+        super("planks");
+    }
+
+    @Override
+    protected @NotNull Block createBlock(
+        WoodenComplexMaterial parentMaterial,
+        BlockBehaviour.Properties settings
+    ) {
+        return new BasePlanks.Wood(settings);
+    }
+
+    @Override
+    protected @Nullable void makeRecipe(
+        RecipeBuilder.Context context,
+        ComplexMaterial parentMaterial,
+        Identifier id
+    ) {
+        RecipeBuilder.crafting(id, parentMaterial.getBlock(suffix))
+            .outputCount(4)
+            .shapeless()
+            .addMaterial(
+                '#',
+                parentMaterial.getBlock(WoodSlots.LOG),
+                parentMaterial.getBlock(WoodSlots.BARK),
+                parentMaterial.getBlock(WoodSlots.STRIPPED_LOG),
+                parentMaterial.getBlock(WoodSlots.STRIPPED_BARK)
+            )
+            .group("planks")
+            .category(RecipeCategory.BUILDING_BLOCKS)
+            .build(context);
+    }
+}
